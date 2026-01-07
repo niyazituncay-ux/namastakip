@@ -191,21 +191,48 @@
     /* === Spaltenbreite Gebete === */
 /* === FIX: Datum-Spalte schneidet nichts mehr === */
 table { width: 100%; table-layout: auto; }
-
-tbody th{
-  width: 160px;              /* Datum-Spalte stabil */
-  min-width: 160px;
+/* === iPhone FIX: Datum bleibt sichtbar + Tabelle scrollbar === */
+.tableWrap{
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-td[colspan="5"]{
-  min-width: 280px;          /* Platz für 5 Kästchen */
+table{
+  width: 100%;
+  min-width: 720px;          /* Platz für 5 Kästchen */
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
+/* Erste Spalte (Datum) immer sichtbar links */
+thead th:first-child,
+tbody tr > :first-child{
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--panel);
+}
+
+/* Kopfzeile bleibt oben */
+thead th{
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: var(--panel);
+}
+
+/* Datum-Spalte sinnvoll breit */
+thead th:first-child,
+tbody tr > :first-child{
+  min-width: 155px;
+}
+
+/* Gebets-Kästchen bleiben wie gehabt */
 .cells{
   display: grid;
   grid-template-columns: repeat(5, var(--cell));
   gap: 8px;
-  justify-content: start;    /* nicht zentrieren -> weniger Überlappung */
+  justify-content: start;
 }
   </style>
 </head>

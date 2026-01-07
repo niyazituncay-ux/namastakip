@@ -214,25 +214,16 @@ tbody tr > :first-child{
 }
 
 /* Kopfzeile bleibt oben */
-thead th{
-  position: sticky;
-  top: 0;
-  z-index: 4;
-  background: var(--panel);
-}
+/* === FIX: Tabelle wieder normal anzeigen (Tage/Zeilen sichtbar) === */
+thead { display: table-header-group !important; }
+tbody { display: table-row-group !important; }
+tr    { display: table-row !important; }
+th, td{ display: table-cell !important; }
 
-/* Datum-Spalte sinnvoll breit */
-thead th:first-child,
-tbody tr > :first-child{
-  min-width: 155px;
-}
-
-/* Gebets-Kästchen bleiben wie gehabt */
-.cells{
-  display: grid;
-  grid-template-columns: repeat(5, var(--cell));
-  gap: 8px;
-  justify-content: start;
+/* Falls irgendwo vertikal abgeschnitten wird */
+.tableWrap{
+  overflow-x: auto;
+  overflow-y: visible;
 }
   </style>
 </head>

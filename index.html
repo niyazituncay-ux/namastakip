@@ -188,6 +188,27 @@
       font-size:12px;
       line-height:1.35;
     }
+    /* === Spaltenbreite Gebete === */
+table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+th, td {
+  text-align: center;
+  padding: 10px 4px;
+  font-size: 14px;
+}
+
+th:first-child,
+td:first-child {
+  width: 22%;
+}
+
+th:not(:first-child),
+td:not(:first-child) {
+  width: 15.6%;
+}
   </style>
 </head>
 <body>

@@ -189,25 +189,23 @@
       line-height:1.35;
     }
     /* === Spaltenbreite Gebete === */
-table {
-  width: 100%;
-  table-layout: fixed;
+/* === FIX: Datum-Spalte schneidet nichts mehr === */
+table { width: 100%; table-layout: auto; }
+
+tbody th{
+  width: 160px;              /* Datum-Spalte stabil */
+  min-width: 160px;
 }
 
-th, td {
-  text-align: center;
-  padding: 10px 4px;
-  font-size: 14px;
+td[colspan="5"]{
+  min-width: 280px;          /* Platz für 5 Kästchen */
 }
 
-th:first-child,
-td:first-child {
-  width: 22%;
-}
-
-th:not(:first-child),
-td:not(:first-child) {
-  width: 15.6%;
+.cells{
+  display: grid;
+  grid-template-columns: repeat(5, var(--cell));
+  gap: 8px;
+  justify-content: start;    /* nicht zentrieren -> weniger Überlappung */
 }
   </style>
 </head>
@@ -243,15 +241,22 @@ td:not(:first-child) {
     </div>
     <div class="tableWrap">
       <table>
-        <thead>
-          <tr>
-            <th>Datum</th>
-            <th colspan="5">Gebete</th>
-            <th>🌹</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
+      <thead>
+  <tr>
+    <th>Datum</th>
+    <th colspan="5">Gebete</th>
+    <th>🌹</th>
+  </tr>
+  <tr>
+    <th></th>
+    <th class="phead">Sabah</th>
+    <th class="phead">Öğle</th>
+    <th class="phead">İkindi</th>
+    <th class="phead">Akşam</th>
+    <th class="phead">Yatsı</th>
+    <th></th>
+  </tr>
+</thead>
     </div>
     <div class="legend">
       <span class="dot"><span class="sw n"></span> leer</span>

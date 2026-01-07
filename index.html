@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Namastakip</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --panel:#121824; --panel2:#0f1520; --text:#e8eef7;
+      --muted:#9fb0c7; --line:#223049; --green:#22c55e; --black:#111827;
+      --btn:#1b2740; --btn2:#243456; --danger:#ff5a6a;
+      --roseRed:#ff2d55; --roseWhite:#ffffff;
+      --cell:42px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background: radial-gradient(900px 600px at 10% 0%, #0f1a2e 0%, var(--bg) 55%);
+      color:var(--text);
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      background: linear-gradient(180deg, rgba(11,15,20,.95), rgba(11,15,20,.75));
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+      padding:12px 14px;
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+    }
+    h1{margin:0; font-size:20px; letter-spacing:.5px}
+    .sub{color:var(--muted); font-size:12px; margin-top:2px}
+    .wrap{
+      display:grid; grid-template-columns: 1.5fr .9fr;
+      gap:14px; padding:14px; max-width:1200px; margin:0 auto;
+    }
+    @media (max-width: 980px){
+      .wrap{grid-template-columns:1fr}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(18,24,36,.96), rgba(15,21,32,.96));
+      border:1px solid var(--line); border-radius:14px; overflow:hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .card .hd{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      padding:12px 12px;
+      border-bottom:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+    }
+    .card .hd .title{font-weight:700}
+    .controls{
+      display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+    }
+    button, select, input{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(27,39,64,.95), rgba(27,39,64,.75));
+      color:var(--text);
+      border-radius:10px;
+      padding:9px 10px;
+      font-size:14px;
+      outline:none;
+    }
+    button{cursor:pointer}
+    button:hover{filter:brightness(1.06)}
+    button.danger{
+      background: linear-gradient(180deg, rgba(255,90,106,.25), rgba(255,90,106,.15));
+      border-color: rgba(255,90,106,.45);
+    }
+    button.ghost{
+      background: transparent;
+    }
+    .hint{
+      padding:10px 12px; color:var(--muted); font-size:13px; line-height:1.35;
+      border-bottom:1px solid var(--line);
+    }
+
+    /* Table */
+    .tableWrap{overflow:auto; -webkit-overflow-scrolling:touch;}
+    table{border-collapse:separate; border-spacing:0; width:100%; min-width:720px;}
+    thead th{
+      position:sticky; top:0;
+      background: rgba(18,24,36,.98);
+      z-index:2;
+      border-bottom:1px solid var(--line);
+      padding:10px 8px;
+      text-align:center; font-size:13px; color:var(--muted);
+      white-space:nowrap;
+    }
+    thead th:first-child{left:0; position:sticky; z-index:3; text-align:left}
+    tbody td, tbody th{
+      border-bottom:1px solid rgba(34,48,73,.55);
+      padding:8px;
+      font-size:14px;
+      white-space:nowrap;
+    }
+    tbody th{
+      position:sticky; left:0; z-index:1;
+      background: rgba(15,21,32,.98);
+      text-align:left; font-weight:600;
+      border-right:1px solid rgba(34,48,73,.55);
+    }
+    tbody tr:hover td, tbody tr:hover th{background: rgba(255,255,255,.02)}
+    .cells{
+      display:grid;
+      grid-template-columns: repeat(5, var(--cell));
+      gap:8px;
+      justify-content:center;
+    }
+    .cell{
+      width:var(--cell); height:var(--cell);
+      border-radius:12px;
+      border:1px solid rgba(34,48,73,.75);
+      background: rgba(255,255,255,.02);
+      display:grid; place-items:center;
+      user-select:none;
+      cursor:pointer;
+      font-size:20px;
+      line-height:1;
+      transition: transform .06s ease, filter .12s ease;
+    }
+    .cell:active{transform:scale(.97)}
+    .cell[data-s="0"]{color:rgba(232,238,247,.25)}
+    .cell[data-s="1"]{background: rgba(34,197,94,.16); border-color: rgba(34,197,94,.45); color: var(--green)}
+    .cell[data-s="2"]{background: rgba(17,24,39,.55); border-color: rgba(232,238,247,.12); color: #e5e7eb}
+    .legend{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      font-size:13px; color:var(--muted);
+      padding:10px 12px;
+      border-top:1px solid var(--line);
+      background: rgba(255,255,255,.01);
+    }
+    .dot{display:inline-flex; align-items:center; gap:6px}
+    .sw{width:14px; height:14px; border-radius:5px; border:1px solid var(--line); display:inline-block}
+    .sw.g{background: rgba(34,197,94,.18); border-color: rgba(34,197,94,.45)}
+    .sw.k{background: rgba(17,24,39,.65); border-color: rgba(232,238,247,.12)}
+    .sw.n{background: rgba(255,255,255,.03); border-color: rgba(34,48,73,.75)}
+
+    /* Tracker */
+    .grid2{display:grid; grid-template-columns:1fr; gap:10px; padding:12px}
+    .mini{
+      background: rgba(255,255,255,.02);
+      border:1px solid rgba(34,48,73,.7);
+      border-radius:14px;
+      padding:12px;
+    }
+    .mini h3{margin:0 0 8px 0; font-size:14px; color:var(--muted); font-weight:700; letter-spacing:.3px}
+    .rows{display:grid; gap:6px}
+    .row{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:8px 10px;
+      background: rgba(0,0,0,.18);
+      border:1px solid rgba(34,48,73,.45);
+      border-radius:12px;
+      font-size:14px;
+    }
+    .badge{
+      min-width:42px; text-align:center;
+      padding:5px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(34,48,73,.6);
+      font-variant-numeric: tabular-nums;
+    }
+    .badgG{border-color: rgba(34,197,94,.5)}
+    .badgK{border-color: rgba(232,238,247,.18)}
+    .roses{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      margin-top:10px;
+    }
+    .rose{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid rgba(34,48,73,.7);
+      background: rgba(0,0,0,.18);
+      font-size:14px;
+    }
+    .rRed{color: var(--roseRed); border-color: rgba(255,45,85,.45)}
+    .rWhite{color: #fff; border-color: rgba(255,255,255,.22)}
+    .small{font-size:12px; color:var(--muted)}
+    .footerBtns{display:flex; gap:8px; flex-wrap:wrap; padding:12px; border-top:1px solid var(--line)}
+    textarea{
+      width:100%; min-height:110px; resize:vertical;
+      background: rgba(0,0,0,.18);
+      border:1px solid rgba(34,48,73,.7);
+      color: var(--text);
+      border-radius:14px;
+      padding:10px;
+      font-size:12px;
+      line-height:1.35;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Namastakip</h1>
+    <div class="sub">Tippen = Status wechseln: leer → ✅ (pünktlich) → ✓ (Kaza) • Daten werden auf deinem Handy gespeichert</div>
+  </div>
+  <div class="controls">
+    <button id="btnToday">Heute</button>
+    <label class="small">Jahr:
+      <select id="yearSelect"></select>
+    </label>
+    <label class="small">Monat:
+      <select id="monthSelect"></select>
+    </label>
+    <button id="btnClearMonth" class="danger">Monat löschen</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- LEFT: TABLE -->
+  <section class="card">
+    <div class="hd">
+      <div class="title">Tabelle</div>
+      <div class="small" id="rangeInfo"></div>
+    </div>
+    <div class="hint">
+      <b>Bedienung:</b> Tippe auf ein Feld (Sabah / Öğle / İkindi / Akşam / Yatsı).
+      Jeder Tipp wechselt den Status: <b>leer</b> → <b>✅ (pünktlich/Eda)</b> → <b>✓ (Kaza)</b>.<br/>
+      <span class="small">Tipp: Nutze oben Jahr/Monat, damit dein iPhone nicht tausende Zeilen auf einmal laden muss.</span>
+    </div>
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th colspan="5">Gebete</th>
+            <th>🌹</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span class="dot"><span class="sw n"></span> leer</span>
+      <span class="dot"><span class="sw g"></span> ✅ pünktlich (Eda)</span>
+      <span class="dot"><span class="sw k"></span> ✓ Kaza</span>
+      <span class="dot">🌹 Rot = alle 5 pünktlich • 🌹 Weiß = alle 5 erledigt (egal ob pünktlich/Kaza)</span>
+    </div>
+  </section>
+
+  <!-- RIGHT: TRACKERS -->
+  <aside class="card">
+    <div class="hd">
+      <div class="title">Tracker</div>
+      <div class="small" id="saveInfo">Autosave: an</div>
+    </div>
+    <div class="grid2">
+      <div class="mini">
+        <h3>✅ Pünktlich (Eda)</h3>
+        <div class="rows" id="trackGreen"></div>
+      </div>
+
+      <div class="mini">
+        <h3>✓ Kaza</h3>
+        <div class="rows" id="trackKaza"></div>
+      </div>
+
+      <div class="mini">
+        <h3>Tage mit Rosen</h3>
+        <div class="roses">
+          <div class="rose rRed">🌹 Rot <span class="badge" id="redCount">0</span></div>
+          <div class="rose rWhite">🌹 Weiß <span class="badge" id="whiteCount">0</span></div>
+        </div>
+        <div class="small" style="margin-top:10px">
+          Rot: alle 5 pünktlich • Weiß: alle 5 erledigt, aber nicht komplett pünktlich
+        </div>
+      </div>
+
+      <div class="mini">
+        <h3>Backup (optional)</h3>
+        <div class="small">Du kannst deine Daten exportieren/importieren (für Backup oder Gerätewechsel).</div>
+        <textarea id="backupArea" placeholder="Hier erscheint Export-Text… (oder füge Import-Text ein)"></textarea>
+        <div class="footerBtns">
+          <button id="btnExport">Export</button>
+          <button id="btnImport">Import</button>
+          <button id="btnResetAll" class="danger">Alles löschen</button>
+        </div>
+        <div class="small">Hinweis: „Alles löschen“ entfernt nur die gespeicherten Daten auf diesem Gerät.</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function(){
+  // ====== SETTINGS ======
+  const START_YEAR = 2002;
+  const END_YEAR   = 2030;
+
+  // For speed: show one month at a time (still covers 2002–2030 via selector)
+  const PRAYERS = [
+    {key:"sabah",  label:"Sabah"},
+    {key:"ogle",   label:"Öğle"},
+    {key:"ikindi", label:"İkindi"},
+    {key:"aksam",  label:"Akşam"},
+    {key:"yatsi",  label:"Yatsı"},
+  ];
+
+  // status: 0 empty, 1 green (eda), 2 black (kaza)
+  const ICON = {
+    0:"", 1:"✅", 2:"✓"
+  };
+
+  const LS_KEY = "namastakip_v1"; // stores all days sparse
+
+  // ====== DOM ======
+  const yearSelect = document.getElementById("yearSelect");
+  const monthSelect = document.getElementById("monthSelect");
+  const tbody = document.getElementById("tbody");
+  const rangeInfo = document.getElementById("rangeInfo");
+  const trackGreen = document.getElementById("trackGreen");
+  const trackKaza = document.getElementById("trackKaza");
+  const redCountEl = document.getElementById("redCount");
+  const whiteCountEl = document.getElementById("whiteCount");
+  const backupArea = document.getElementById("backupArea");
+
+  // ====== STATE ======
+  let db = loadDB(); // object map: "YYYY-MM-DD" -> {sabah:0..2,...}
+
+  // ====== INIT SELECTS ======
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function ymd(d){
+    const y = d.getFullYear();
+    const m = pad2(d.getMonth()+1);
+    const da = pad2(d.getDate());
+    return `${y}-${m}-${da}`;
+  }
+  function parseYMD(s){
+    const [y,m,d] = s.split("-").map(Number);
+    return new Date(y, m-1, d);
+  }
+  function daysInMonth(y,mIndex){
+    return new Date(y, mIndex+1, 0).getDate();
+  }
+
+  function fillYearMonth(){
+    // years
+    yearSelect.innerHTML = "";
+    for(let y=START_YEAR; y<=END_YEAR; y++){
+      const opt = document.createElement("option");
+      opt.value = String(y);
+      opt.textContent = String(y);
+      yearSelect.appendChild(opt);
+    }
+    // months
+    const monthNames = ["01 Jan","02 Feb","03 Mär","04 Apr","05 Mai","06 Jun","07 Jul","08 Aug","09 Sep","10 Okt","11 Nov","12 Dez"];
+    monthSelect.innerHTML = "";
+    for(let i=0;i<12;i++){
+      const opt = document.createElement("option");
+      opt.value = String(i);
+      opt.textContent = monthNames[i];
+      monthSelect.appendChild(opt);
+    }
+
+    // default: today
+    const now = new Date();
+    yearSelect.value = String(now.getFullYear());
+    monthSelect.value = String(now.getMonth());
+  }
+
+  // ====== DB ======
+  function loadDB(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) return {};
+      const obj = JSON.parse(raw);
+      if(typeof obj !== "object" || !obj) return {};
+      return obj;
+    }catch(e){
+      return {};
+    }
+  }
+  function saveDB(){
+    localStorage.setItem(LS_KEY, JSON.stringify(db));
+  }
+  function ensureDay(key){
+    if(!db[key]){
+      db[key] = {sabah:0, ogle:0, ikindi:0, aksam:0, yatsi:0};
+    }else{
+      // ensure all keys exist
+      for(const p of PRAYERS){
+        if(typeof db[key][p.key] !== "number") db[key][p.key] = 0;
+      }
+    }
+    return db[key];
+  }
+
+  // ====== RENDER MONTH ======
+  function renderMonth(){
+    const y = Number(yearSelect.value);
+    const m = Number(monthSelect.value); // 0..11
+
+    const first = new Date(y,m,1);
+    const lastDay = daysInMonth(y,m);
+    const last = new Date(y,m,lastDay);
+
+    rangeInfo.textContent = `Zeitraum: ${ymd(first)} bis ${ymd(last)} (Wähle Jahr/Monat für 2002–2030)`;
+
+    // build header labels (prayers)
+    // tbody rows
+    tbody.innerHTML = "";
+
+    const frag = document.createDocumentFragment();
+
+    for(let day=1; day<=lastDay; day++){
+      const d = new Date(y,m,day);
+      const key = ymd(d);
+      const rec = ensureDay(key);
+
+      const tr = document.createElement("tr");
+
+      // date th
+      const th = document.createElement("th");
+      th.textContent = formatDateDE(d);
+      tr.appendChild(th);
+
+      // cells group
+      const tdCells = document.createElement("td");
+      tdCells.colSpan = 5;
+      const wrap = document.createElement("div");
+      wrap.className = "cells";
+
+      PRAYERS.forEach((p,idx)=>{
+        const c = document.createElement("div");
+        c.className = "cell";
+        c.title = `${p.label} – tippen zum wechseln`;
+        c.dataset.date = key;
+        c.dataset.prayer = p.key;
+        c.dataset.s = String(rec[p.key] || 0);
+        c.textContent = ICON[rec[p.key]||0];
+        c.addEventListener("click", onCellClick, {passive:true});
+        wrap.appendChild(c);
+      });
+
+      tdCells.appendChild(wrap);
+      tr.appendChild(tdCells);
+
+      // rose column
+      const tdRose = document.createElement("td");
+      tdRose.style.textAlign = "center";
+      tdRose.style.fontSize = "18px";
+      tdRose.dataset.roseFor = key;
+      tdRose.textContent = roseForDay(rec);
+      tr.appendChild(tdRose);
+
+      frag.appendChild(tr);
+    }
+
+    tbody.appendChild(frag);
+
+    // update trackers (for ALL time 2002–2030 based on saved data)
+    updateTrackers();
+  }
+
+  function formatDateDE(d){
+    const wd = ["So","Mo","Di","Mi","Do","Fr","Sa"][d.getDay()];
+    return `${wd} ${pad2(d.getDate())}.${pad2(d.getMonth()+1)}.${d.getFullYear()}`;
+  }
+
+  function roseForDay(rec){
+    const vals = PRAYERS.map(p=>rec[p.key]||0);
+    const allDone = vals.every(v => v===1 || v===2);
+    const allGreen = vals.every(v => v===1);
+    if(allGreen) return "🌹"; // red shown via tracker label only; still rose symbol
+    if(allDone) return "🥀";  // white rose alternative symbol (to differentiate)
+    return "";
+  }
+
+  // We show: 🌹 as "rot" and 🥀 as "weiß" (simpler visually)
+  // If you want literally a white rose emoji, switch 🥀 -> 🌹 and track by color not emoji.
+
+  // ====== CLICK HANDLER ======
+  function onCellClick(e){
+    const el = e.currentTarget;
+    const date = el.dataset.date;
+    const prayer = el.dataset.prayer;
+
+    const rec = ensureDay(date);
+
+    // cycle 0 -> 1 -> 2 -> 0
+    const cur = rec[prayer] || 0;
+    const next = (cur + 1) % 3;
+    rec[prayer] = next;
+
+    // update cell
+    el.dataset.s = String(next);
+    el.textContent = ICON[next];
+
+    // update rose cell in same row
+    const tr = el.closest("tr");
+    const roseTd = tr.querySelector('td[data-rose-for="'+date+'"]');
+    if(roseTd) roseTd.textContent = roseForDay(rec);
+
+    saveDB();
+    updateTrackers();
+  }
+
+  // ====== TRACKERS (COUNT OVER ALL SAVED DATES) ======
+  function updateTrackers(){
+    const green = Object.fromEntries(PRAYERS.map(p=>[p.key,0]));
+    const kaza  = Object.fromEntries(PRAYERS.map(p=>[p.key,0]));
+    let redDays = 0;
+    let whiteDays = 0;
+
+    // Only count dates that exist in db (sparse). This is fast.
+    for(const date in db){
+      const rec = ensureDay(date);
+      let allDone = true;
+      let allGreen = true;
+
+      for(const p of PRAYERS){
+        const v = rec[p.key] || 0;
+        if(v===1) green[p.key]++;
+        if(v===2) kaza[p.key]++;
+        if(!(v===1 || v===2)) allDone = false;
+        if(v!==1) allGreen = false;
+      }
+
+      if(allGreen) redDays++;
+      else if(allDone) whiteDays++;
+    }
+
+    renderTrackerList(trackGreen, green, "badgG");
+    renderTrackerList(trackKaza,  kaza,  "badgK");
+
+    redCountEl.textContent = String(redDays);
+    whiteCountEl.textContent = String(whiteDays);
+  }
+
+  function renderTrackerList(root, obj, badgeClass){
+    root.innerHTML = "";
+    for(const p of PRAYERS){
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `
+        <div>${p.label}</div>
+        <div class="badge ${badgeClass}">${obj[p.key]||0}</div>
+      `;
+      root.appendChild(row);
+    }
+  }
+
+  // ====== BUTTONS ======
+  document.getElementById("btnToday").addEventListener("click", ()=>{
+    const now = new Date();
+    yearSelect.value = String(now.getFullYear());
+    monthSelect.value = String(now.getMonth());
+    renderMonth();
+    // try scroll to today row
+    setTimeout(()=>{
+      const key = ymd(now);
+      const cell = document.querySelector('.cell[data-date="'+key+'"]');
+      if(cell) cell.scrollIntoView({behavior:"smooth", block:"center"});
+    }, 50);
+  });
+
+  yearSelect.addEventListener("change", renderMonth);
+  monthSelect.addEventListener("change", renderMonth);
+
+  document.getElementById("btnClearMonth").addEventListener("click", ()=>{
+    const y = Number(yearSelect.value);
+    const m = Number(monthSelect.value);
+
+    const lastDay = daysInMonth(y,m);
+    for(let day=1; day<=lastDay; day++){
+      const key = `${y}-${pad2(m+1)}-${pad2(day)}`;
+      if(db[key]){
+        delete db[key];
+      }
+    }
+    saveDB();
+    renderMonth();
+  });
+
+  document.getElementById("btnExport").addEventListener("click", ()=>{
+    backupArea.value = JSON.stringify(db);
+    backupArea.focus();
+    backupArea.select();
+  });
+
+  document.getElementById("btnImport").addEventListener("click", ()=>{
+    try{
+      const obj = JSON.parse(backupArea.value.trim());
+      if(!obj || typeof obj !== "object") throw new Error("Format falsch");
+      db = obj;
+      saveDB();
+      renderMonth();
+      alert("Import ok ✅");
+    }catch(e){
+      alert("Import fehlgeschlagen: Bitte Export-Text komplett einfügen.");
+    }
+  });
+
+  document.getElementById("btnResetAll").addEventListener("click", ()=>{
+    const ok = confirm("Wirklich ALLE gespeicherten Daten löschen?");
+    if(!ok) return;
+    db = {};
+    saveDB();
+    renderMonth();
+  });
+
+  // ====== BOOT ======
+  fillYearMonth();
+  renderMonth();
+})();
+</script>
+</body>
+</html>

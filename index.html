@@ -330,12 +330,16 @@ button{cursor:pointer}
 </script>
 <script>
 (() => {
-  // ====== Einstellungen (Pflicht ab 10 Jahren, Geburt 1998 default) ======
+  <script>
+(() => {
+  // ====== Einstellungen ======
   const SETTINGS_KEY = "namastakip_v4_settings";
-  const DB_KEY = "namastakip_v4_db"; // muss zu Teil 2 passen
+  const DB_KEY = "namastakip_v4_db";
 
-  const PRAYERS_PER_DAY = 6; // 5 + Vitir
   const obligationAge = 10;
+
+  // Für „voller Tag erledigt“ zählen NUR die 5 Pflichtgebete:
+  const FIVE_KEYS = ["sabah","ogle","ikindi","aksam","yatsi"]; // vitir zählt NICHT für Tages-✓
 
   let settings = { birthDate: "1998-01-01" };
   try{
@@ -347,16 +351,15 @@ button{cursor:pointer}
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
 
-  // ====== UI in rechter Box ersetzen (wir nutzen die vorhandene zweite Card) ======
-  // Wir suchen die zweite Card im main (die "Zähler & Backup" Box) und ersetzen deren Inhalt
+  // ====== Rechte Box neu aufbauen ======
   const cards = document.querySelectorAll("main .card");
-  const rightCard = cards[cards.length - 1]; // die zweite card (unter der Tabelle)
+  const rightCard = cards[cards.length - 1];
+
   rightCard.innerHTML = `
-    <h3 style="margin:0 0 8px 0; font-size:15px;">Zähler & Archiv</h3>
+    <h3 style="margin:0 0 8px 0; font-size:15px;">Tracker & Jahreskalender</h3>
 
     <div class="sub" style="margin:0 0 10px 0;">
-      Pflicht pro Tag: <b>${PRAYERS_PER_DAY}</b> (Sabah, Öğle, İkindi, Akşam, Yatsı, Vitir).
-      Tippen-Zyklus: ⬛ Kaza → 🔴 Farz → 🟡 Sünnet+Wajib → 🟢 Cemaat → leer
+      „Namaz-Tag erledigt“ = alle <b>5 Pflichtgebete</b> (Sabah–Yatsı) erledigt. Vitir ist extra.
     </div>
 
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
@@ -365,69 +368,65 @@ button{cursor:pointer}
     </div>
 
     <div style="border:1px solid var(--line); border-radius:12px; padding:10px; background:rgba(0,0,0,.12);">
-      <div class="sub" style="margin:0 0 6px 0;"><b>Gesamt-Fortschritt seit Pflicht</b></div>
-      <div style="display:grid; gap:6px; font-size:13px;">
-        <div style="display:flex; justify-content:space-between; gap:10px;">
-          <span>Pflicht seit</span><b id="sinceLabel">–</b>
-        </div>
-        <div style="display:flex; justify-content:space-between; gap:10px;">
-          <span>Nötig (Gebete)</span><b id="needLabel">0</b>
-        </div>
-        <div style="display:flex; justify-content:space-between; gap:10px;">
-          <span>Erledigt</span><b id="doneLabel">0</b>
-        </div>
-        <div style="display:flex; justify-content:space-between; gap:10px;">
-          <span>Noch offen</span><b id="leftLabel">0</b>
-        </div>
-      </div>
+      <div class="sub" style="margin:0 0 8px 0;"><b>Deine erledigten Namaz-Tage (gesamt)</b></div>
 
-      <div style="margin-top:10px; height:12px; border-radius:999px; border:1px solid var(--line); background:rgba(0,0,0,.18); overflow:hidden;">
-        <div id="barFill" style="height:100%; width:0%; background:linear-gradient(90deg, rgba(90,209,255,.95), rgba(46,229,157,.95));"></div>
+      <div style="display:grid; gap:6px; font-size:13px;">
+        <div style="display:flex; justify-content:space-between;">
+          <span>Namaz-Tage erledigt</span><b id="doneDays">0</b>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span>Entspricht Monate (÷30)</span><b id="doneMonths">0.00</b>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span>Entspricht Jahre (Monate ÷12)</span><b id="doneYears">0.00</b>
+        </div>
       </div>
     </div>
 
     <div style="height:12px;"></div>
 
     <div style="border:1px solid var(--line); border-radius:12px; padding:10px; background:rgba(0,0,0,.12);">
-      <div class="sub" style="margin:0 0 8px 0;"><b>Tracker (gesamt)</b></div>
-      <div id="trackers" style="display:grid; gap:6px;"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div class="sub" style="margin:0;"><b>Jahreskalender ✓ (5 Pflichtgebete erledigt)</b></div>
+        <span class="pill">Jahr: <b id="calYearLabel">–</b></span>
+      </div>
+
+      <div class="sub" style="margin:8px 0 10px 0;">
+        Jeder Tag mit ✓ bedeutet: Sabah–Yatsı erledigt.
+      </div>
+
+      <div id="yearCalendar" style="display:grid; gap:10px;"></div>
     </div>
 
     <div style="height:12px;"></div>
 
     <div style="border:1px solid var(--line); border-radius:12px; padding:10px; background:rgba(0,0,0,.12);">
       <div class="sub" style="margin:0 0 6px 0;"><b>Backup (ewiges Archiv)</b></div>
-      <div class="sub" style="margin:0 0 10px 0;">
-        Für neues Handy: <b>Backup speichern</b> → in Dateien/iCloud ablegen → später <b>Backup laden</b>.
-      </div>
-
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button id="btnSaveFile">Backup speichern</button>
         <button id="btnLoadFile">Backup laden</button>
         <button id="btnExportText">Export (Text)</button>
         <button id="btnImportText">Import (Text)</button>
       </div>
-
       <textarea id="backupText" placeholder="Export-Text erscheint hier… oder Import-Text einfügen"></textarea>
-
       <div class="sub" style="margin-top:8px;">
-        Autospeichern ist immer aktiv. Der Backup-Button ist die Extra-Sicherheit.
+        Empfehlung: Backup speichern → Dateien → iCloud Drive.
       </div>
     </div>
 
     <input id="filePicker" type="file" accept="application/json" style="display:none" />
   `;
 
-  // ====== Elemente ======
+  // ====== UI refs ======
   const birthDate = document.getElementById("birthDate");
   const btnApplyBirth = document.getElementById("btnApplyBirth");
 
-  const sinceLabel = document.getElementById("sinceLabel");
-  const needLabel  = document.getElementById("needLabel");
-  const doneLabel  = document.getElementById("doneLabel");
-  const leftLabel  = document.getElementById("leftLabel");
-  const barFill    = document.getElementById("barFill");
-  const trackersEl = document.getElementById("trackers");
+  const doneDaysEl = document.getElementById("doneDays");
+  const doneMonthsEl = document.getElementById("doneMonths");
+  const doneYearsEl = document.getElementById("doneYears");
+
+  const calYearLabel = document.getElementById("calYearLabel");
+  const yearCalendar = document.getElementById("yearCalendar");
 
   const btnSaveFile = document.getElementById("btnSaveFile");
   const btnLoadFile = document.getElementById("btnLoadFile");
@@ -445,113 +444,145 @@ button{cursor:pointer}
     alert("Gespeichert ✅");
   });
 
-  // ====== Pflicht-Start berechnen ======
+  // ====== Helpers ======
+  const pad2 = (n) => String(n).padStart(2,"0");
+  const iso = (y,m,d) => `${y}-${pad2(m)}-${pad2(d)}`;
+  const daysInMonth = (y,m0) => new Date(y, m0+1, 0).getDate();
+  const monthNames = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+  const weekNames = ["Mo","Di","Mi","Do","Fr","Sa","So"];
+
   function obligationStart(){
-    const bd = (settings.birthDate || "1998-01-01").split("-").map(n=>parseInt(n,10));
-    const start = new Date(bd[0] + obligationAge, (bd[1]-1), bd[2]);
+    const [y,m,d] = (settings.birthDate || "1998-01-01").split("-").map(n=>parseInt(n,10));
+    const start = new Date(y + obligationAge, (m-1), d);
     start.setHours(0,0,0,0);
     return start;
   }
 
-  function isoToday(d){
-    const pad2 = (n) => String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  function isFullDay5(rec){
+    // „voller Tag“ = alle 5 Pflichtgebete nicht leer
+    for(const k of FIVE_KEYS){
+      const v = rec?.[k] || 0;
+      if(v === 0) return false;
+    }
+    return true;
   }
 
-  // ====== Zählen: erledigt / tracker ======
-  const PRAYER_KEYS = ["sabah","ogle","ikindi","aksam","yatsi","vitir"];
-  const LABELS = { sabah:"Sabah", ogle:"Öğle", ikindi:"İkindi", aksam:"Akşam", yatsi:"Yatsı", vitir:"Vitir" };
-
+  // ====== Tracker + Kalender ======
   function updateAll(){
-    // Daten holen
-    const raw = (window.__namastakipDB && window.__namastakipDB.get) ? window.__namastakipDB.get() : {};
-    const db = raw || {};
+    const db = (window.__namastakipDB && window.__namastakipDB.get) ? window.__namastakipDB.get() : {};
 
-    // Tracker gesamt nach Status
-    const counts = {};
-    for(const k of PRAYER_KEYS){
-      counts[k] = { kaza:0, farz:0, sunnet:0, cemaat:0 };
-    }
-
-    // Erledigt = status 1..4
-    let doneTotal = 0;
+    // 1) Zähle volle Tage (5 Pflichtgebete) über ALLE gespeicherten Einträge
+    let doneDays = 0;
     for(const dateISO in db){
       const rec = db[dateISO];
-      if(!rec || typeof rec !== "object") continue;
-      for(const k of PRAYER_KEYS){
-        const v = rec[k] || 0;
-        if(v >= 1 && v <= 4) doneTotal++;
-        if(v === 1) counts[k].kaza++;
-        if(v === 2) counts[k].farz++;
-        if(v === 3) counts[k].sunnet++;
-        if(v === 4) counts[k].cemaat++;
+      if(rec && isFullDay5(rec)) doneDays++;
+    }
+
+    const months = doneDays / 30;
+    const years = months / 12;
+
+    doneDaysEl.textContent = String(doneDays);
+    doneMonthsEl.textContent = months.toFixed(2);
+    doneYearsEl.textContent = years.toFixed(2);
+
+    // 2) Jahreskalender für aktuell ausgewähltes Jahr (aus Dropdown links)
+    const year = getSelectedYear();
+    calYearLabel.textContent = String(year);
+    renderYearCalendar(year, db);
+  }
+
+  function getSelectedYear(){
+    // nutzt das Jahr-Dropdown aus Teil 2
+    const selYear = document.getElementById("selYear");
+    const y = parseInt(selYear?.value || "2026", 10);
+    return isNaN(y) ? new Date().getFullYear() : y;
+  }
+
+  function renderYearCalendar(year, db){
+    yearCalendar.innerHTML = "";
+
+    // CSS für Kalender (inline, damit du nichts suchen musst)
+    const styleId = "yearCalStyleV1";
+    if(!document.getElementById(styleId)){
+      const st = document.createElement("style");
+      st.id = styleId;
+      st.textContent = `
+        .mBox{ border:1px solid var(--line); border-radius:12px; background:rgba(0,0,0,.10); padding:10px; }
+        .mHead{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+        .mHead b{ color:var(--muted); font-size:13px; }
+        .dow{ display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; margin-bottom:6px; }
+        .dow div{ font-size:11px; color:var(--muted); text-align:center; opacity:.9; }
+        .grid{ display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; }
+        .d{
+          height:22px; border-radius:6px; border:1px solid rgba(255,255,255,.14);
+          display:flex; align-items:center; justify-content:center;
+          font-size:11px; color:rgba(255,255,255,.75);
+          background: rgba(0,0,0,.10);
+        }
+        .d.off{ opacity:.25; }
+        .d.done{
+          background: rgba(46,229,157,.22);
+          border-color: rgba(46,229,157,.55);
+          color: #eafff7;
+          font-weight:700;
+        }
+      `;
+      document.head.appendChild(st);
+    }
+
+    // 12 Monate
+    for(let m0=0; m0<12; m0++){
+      const box = document.createElement("div");
+      box.className = "mBox";
+
+      const head = document.createElement("div");
+      head.className = "mHead";
+      head.innerHTML = `<b>${monthNames[m0]}</b><span class="pill" style="padding:5px 8px;">${year}</span>`;
+      box.appendChild(head);
+
+      const dow = document.createElement("div");
+      dow.className = "dow";
+      for(const w of weekNames){
+        const el = document.createElement("div");
+        el.textContent = w;
+        dow.appendChild(el);
       }
-    }
+      box.appendChild(dow);
 
-    // Nötig = Tage seit Pflicht * 6 (bis heute inkl.)
-    const start = obligationStart();
-    const today = new Date(); today.setHours(0,0,0,0);
+      const grid = document.createElement("div");
+      grid.className = "grid";
 
-    let daysReq = 0;
-    if(start <= today){
-      daysReq = Math.floor((today - start) / 86400000) + 1;
-    }
-    const needTotal = daysReq * PRAYERS_PER_DAY;
-    const left = Math.max(0, needTotal - doneTotal);
-    const pct = needTotal > 0 ? Math.min(100, (doneTotal / needTotal) * 100) : 0;
+      const first = new Date(year, m0, 1);
+      // JS: So=0..Sa=6, wir wollen Mo=0..So=6
+      const shift = (first.getDay() + 6) % 7;
+      const dim = daysInMonth(year, m0);
 
-    sinceLabel.textContent = isoToday(start);
-    needLabel.textContent  = String(needTotal);
-    doneLabel.textContent  = String(doneTotal);
-    leftLabel.textContent  = String(left);
-    barFill.style.width = `${pct.toFixed(2)}%`;
+      // leading empty cells
+      for(let i=0; i<shift; i++){
+        const c = document.createElement("div");
+        c.className = "d off";
+        c.textContent = "";
+        grid.appendChild(c);
+      }
 
-    // Tracker UI
-    trackersEl.innerHTML = "";
-    for(const k of PRAYER_KEYS){
-      const row = document.createElement("div");
-      row.style.display = "grid";
-      row.style.gridTemplateColumns = "70px 1fr";
-      row.style.gap = "10px";
-      row.style.alignItems = "center";
-      row.style.padding = "8px 10px";
-      row.style.border = "1px solid var(--line)";
-      row.style.borderRadius = "12px";
-      row.style.background = "rgba(0,0,0,.10)";
+      for(let d=1; d<=dim; d++){
+        const dateISO = iso(year, m0+1, d);
+        const rec = db[dateISO];
+        const done = rec && isFullDay5(rec);
 
-      const left = document.createElement("div");
-      left.innerHTML = `<b>${LABELS[k]}</b>`;
-      left.style.color = "var(--muted)";
-      left.style.fontSize = "13px";
+        const c = document.createElement("div");
+        c.className = "d" + (done ? " done" : "");
+        // ✓ statt Zahl, damit man sofort sieht „erledigt“
+        c.textContent = done ? "✓" : String(d);
+        grid.appendChild(c);
+      }
 
-      const right = document.createElement("div");
-      right.style.display = "flex";
-      right.style.flexWrap = "wrap";
-      right.style.gap = "6px";
-
-      right.appendChild(tag("⬛", counts[k].kaza));
-      right.appendChild(tag("🔴", counts[k].farz));
-      right.appendChild(tag("🟡", counts[k].sunnet));
-      right.appendChild(tag("🟢", counts[k].cemaat));
-
-      row.appendChild(left);
-      row.appendChild(right);
-      trackersEl.appendChild(row);
-    }
-
-    function tag(emoji, n){
-      const s = document.createElement("span");
-      s.className = "pill";
-      s.textContent = `${emoji} ${n}`;
-      return s;
+      box.appendChild(grid);
+      yearCalendar.appendChild(box);
     }
   }
 
-  // Expose for Part 2
-  window.__namastakipUpdateAll = updateAll;
-  updateAll();
-
-  // ====== Backup als Datei ======
+  // ====== Backup (Datei + Text) ======
   btnSaveFile.addEventListener("click", () => {
     const payload = {
       version: 4,
@@ -559,10 +590,8 @@ button{cursor:pointer}
       settings,
       db: (window.__namastakipDB && window.__namastakipDB.get) ? window.__namastakipDB.get() : {}
     };
-
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
     const now = new Date();
-    const pad2 = (n) => String(n).padStart(2,"0");
     const stamp = `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
     const filename = `namastakip-backup-${stamp}.json`;
 
@@ -583,12 +612,11 @@ button{cursor:pointer}
   filePicker.addEventListener("change", async () => {
     const f = filePicker.files && filePicker.files[0];
     if(!f) return;
-
     try{
       const txt = await f.text();
       const obj = JSON.parse(txt);
-
       if(!obj || typeof obj !== "object") throw new Error("ungültig");
+
       if(obj.settings) settings = { ...settings, ...obj.settings };
       if(obj.db && window.__namastakipDB && window.__namastakipDB.set){
         window.__namastakipDB.set(obj.db);
@@ -605,7 +633,6 @@ button{cursor:pointer}
     }
   });
 
-  // ====== Export/Import als Text ======
   btnExportText.addEventListener("click", () => {
     const payload = {
       version: 4,
@@ -621,7 +648,6 @@ button{cursor:pointer}
   btnImportText.addEventListener("click", () => {
     const txt = (backupText.value || "").trim();
     if(!txt) return alert("Bitte zuerst Import-Text einfügen.");
-
     try{
       const obj = JSON.parse(txt);
       if(!obj || typeof obj !== "object") throw new Error("ungültig");
@@ -640,7 +666,16 @@ button{cursor:pointer}
     }
   });
 
-  // ====== Ende HTML schließen ======
+  // ====== Verbindung zu Teil 2 (nach jedem Klick aktualisieren) ======
+  window.__namastakipUpdateAll = updateAll;
+
+  // Wenn Jahr/Monat geändert wird, Jahreskalender updaten
+  const selYear = document.getElementById("selYear");
+  if(selYear) selYear.addEventListener("change", updateAll);
+
+  // Start
+  updateAll();
+
 })();
 </script>
 

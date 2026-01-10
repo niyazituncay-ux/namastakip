@@ -1,211 +1,207 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Namastakip</title>
-  <style>
-    :root{
-      --bg1:#35d0d6;
-      --bg2:#0aa0a8;
-      --panel:rgba(8,20,24,.78);
-      --panel2:rgba(8,20,24,.62);
-      --text:#ecfbff;
-      --muted:#c9f3f7;
-      --line:rgba(255,255,255,.18);
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Namastakip</title>
 
-      --kaza:#0f0f10;      /* schwarz */
-      --farz:#ff5a5a;      /* rot */
-      --sunnet:#ffd84d;    /* gelb */
-      --cemaat:#35e38f;    /* grün */
+<style>
+:root{
+  --bg1:#35d0d6;
+  --bg2:#0aa0a8;
+  --panel:rgba(8,20,24,.78);
+  --panel2:rgba(8,20,24,.62);
+  --text:#ecfbff;
+  --muted:#c9f3f7;
+  --line:rgba(255,255,255,.18);
 
-      --radius:14px;
-      --cell:34px;
-    }
+  --kaza:#0f0f10;      /* schwarz */
+  --farz:#ff5a5a;      /* rot */
+  --sunnet:#ffd84d;    /* gelb */
+  --cemaat:#35e38f;    /* grün */
 
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(900px 600px at 10% 0%, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 55%),
-        linear-gradient(180deg,var(--bg1),var(--bg2));
-      min-height:100vh;
-    }
-
-    header{
-      position:sticky; top:0; z-index:20;
-      background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.12));
-      backdrop-filter:blur(10px);
-      border-bottom:1px solid var(--line);
-    }
-    .top{
-      max-width:1100px;
-      margin:0 auto;
-      padding:12px 12px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-    h1{margin:0;font-size:20px}
-    .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.35}
-    .controls{
-      display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end;
-    }
-
-    button, select, input{
-      background:rgba(0,0,0,.18);
-      color:var(--text);
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:9px 11px;
-      font-size:14px;
-      outline:none;
-    }
-    button{cursor:pointer}
-    button:active{transform:translateY(1px)}
-    .btnDanger{border-color:rgba(255,90,106,.55)}
-    .pill{
-      display:inline-flex; gap:8px; align-items:center;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:rgba(0,0,0,.12);
-      color:var(--muted);
-      font-size:12px;
-      white-space:nowrap;
-    }
-
-    main{
-      max-width:1100px;
-      margin:0 auto;
-      padding:12px 12px 40px;
-      display:grid;
-      grid-template-columns: 1.6fr 1fr;
-      gap:12px;
-    }
-    @media (max-width:980px){
-      main{grid-template-columns:1fr}
-      .controls{justify-content:flex-start}
-    }
-
-    .card{
-      border:1px solid var(--line);
-      background:linear-gradient(180deg,var(--panel),var(--panel2));
-      border-radius:var(--radius);
-      padding:12px;
-      overflow:hidden;
-    }
-
-    /* Tabelle: passt auf iPhone ohne horizontal scroll */
-    table{width:100%; border-collapse:collapse; table-layout:fixed}
-    th,td{
-      border-bottom:1px solid var(--line);
-      padding:6px 4px;
-      text-align:center;
-      font-size:12px;
-    }
-    thead th{
-      position:sticky; top:86px; /* unter header */
-      background:rgba(0,0,0,.18);
-      backdrop-filter:blur(8px);
-      z-index:10;
-    }
-
-    th:first-child, td:first-child{
-      text-align:left;
-      width:92px;          /* Datum schmal */
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .cell{
-      width:var(--cell);
-      height:var(--cell);
-      border-radius:10px;
-      border:1px solid rgba(255,255,255,.20);
-      background:rgba(0,0,0,.10);
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      user-select:none;
-      cursor:pointer;
-      font-weight:800;
-      line-height:1;
-    }
-    .cell.kaza{background:var(--kaza)}
-    .cell.farz{background:var(--farz)}
-    .cell.sunnet{background:var(--sunnet); color:#101010}
-    .cell.cemaat{background:var(--cemaat); color:#0b1b12}
-
-    textarea{
-      width:100%;
-      min-height:120px;
-      resize:vertical;
-      margin-top:10px;
-      background:rgba(0,0,0,.16);
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:10px;
-      color:var(--text);
-      font-size:12px;
-      outline:none;
-    }
-
-    /* Jahreskalender */
-    .yearGrid{display:grid; gap:10px}
-    .mBox{
-      border:1px solid var(--line);
-      border-radius:12px;
-      background:rgba(0,0,0,.10);
-      padding:10px;
-    }
-    .mHead{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px}
-    .dow{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px}
-    .dow div{font-size:10px; color:var(--muted); text-align:center; opacity:.9}
-    .grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px}
-    .d{
-      height:22px;
-      border-radius:6px;
-      border:1px solid rgba(255,255,255,.14);
-      display:flex; align-items:center; justify-content:center;
-      font-size:11px;
-      color:rgba(255,255,255,.78);
-      background:rgba(0,0,0,.10);
-    }
-    .d.off{opacity:.25}
-    .d.done{
-      background:rgba(46,229,157,.22);
-      border-color:rgba(46,229,157,.55);
-      color:#eafff7;
-      font-weight:900;
-    }
-    /* FIX: Überschriften & Spalten ausrichten */
-table { 
-  table-layout: fixed; 
+  --radius:14px;
+  --cell:34px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(900px 600px at 10% 0%, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 55%),
+    linear-gradient(180deg,var(--bg1),var(--bg2));
+  min-height:100vh;
+}
+header{
+  position:sticky; top:0; z-index:20;
+  background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.12));
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.top{
+  max-width:1100px;
+  margin:0 auto;
+  padding:12px 12px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+h1{margin:0;font-size:20px}
+.sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.35}
+.controls{
+  display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end;
+}
+button, select, input{
+  background:rgba(0,0,0,.18);
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:9px 11px;
+  font-size:14px;
+  outline:none;
+}
+button{cursor:pointer}
+button:active{transform:translateY(1px)}
+.btnDanger{border-color:rgba(255,90,106,.55)}
+.pill{
+  display:inline-flex; gap:8px; align-items:center;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.12);
+  color:var(--muted);
+  font-size:12px;
+  white-space:nowrap;
 }
 
-th:first-child,
-td:first-child { 
-  width: 80px !important; 
+main{
+  max-width:1100px;
+  margin:0 auto;
+  padding:12px 12px 40px;
+  display:grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap:12px;
 }
-  </style>
+@media (max-width:980px){
+  main{grid-template-columns:1fr}
+  .controls{justify-content:flex-start}
+}
+.card{
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border-radius:var(--radius);
+  padding:12px;
+  overflow:hidden;
+}
+
+/* Tabelle stabil (keine verrutschten Überschriften) */
+table{width:100%; border-collapse:collapse; table-layout:fixed}
+th,td{
+  border-bottom:1px solid var(--line);
+  padding:6px 4px;
+  text-align:center;
+  font-size:12px;
+}
+thead th{
+  position:sticky;
+  top:86px;
+  background:rgba(0,0,0,.18);
+  backdrop-filter:blur(8px);
+  z-index:10;
+}
+th:first-child, td:first-child{
+  text-align:left;
+  width:92px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.cell{
+  width:var(--cell);
+  height:var(--cell);
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.20);
+  background:rgba(0,0,0,.10);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  user-select:none;
+  cursor:pointer;
+  font-weight:900;
+  line-height:1;
+}
+.cell.kaza{background:var(--kaza)}
+.cell.farz{background:var(--farz)}
+.cell.sunnet{background:var(--sunnet); color:#101010}
+.cell.cemaat{background:var(--cemaat); color:#0b1b12}
+
+textarea{
+  width:100%;
+  min-height:120px;
+  resize:vertical;
+  margin-top:10px;
+  background:rgba(0,0,0,.16);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px;
+  color:var(--text);
+  font-size:12px;
+  outline:none;
+}
+
+/* Jahreskalender */
+.yearGrid{display:grid; gap:10px}
+.mBox{
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(0,0,0,.10);
+  padding:10px;
+}
+.mHead{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px}
+.dow{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px}
+.dow div{font-size:10px; color:var(--muted); text-align:center; opacity:.9}
+.grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px}
+.d{
+  height:22px;
+  border-radius:6px;
+  border:1px solid rgba(255,255,255,.14);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px;
+  color:rgba(255,255,255,.78);
+  background:rgba(0,0,0,.10);
+}
+.d.off{opacity:.25}
+.d.done{
+  background:rgba(46,229,157,.22);
+  border-color:rgba(46,229,157,.55);
+  color:#eafff7;
+  font-weight:900;
+}
+.smallRow{
+  display:flex; justify-content:space-between; gap:10px;
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.10);
+  padding:8px 10px;
+  border-radius:12px;
+  font-size:13px;
+  margin-top:8px;
+}
+</style>
 </head>
-<body>
 
+<body>
 <header>
   <div class="top">
     <div>
       <h1>Namastakip</h1>
       <div class="sub">
-        Tippen = Status wechseln:
-        ⬛ Kaza → 🔴 Farz → 🟡 Sünnet+Wajib → 🟢 Cemaat → leer
+        Tippen = Status wechseln: ⬛ Kaza → 🔴 Farz → 🟡 Sünnet+Wajib → 🟢 Cemaat → leer
       </div>
     </div>
 
@@ -237,33 +233,35 @@ td:first-child {
     </table>
 
     <div class="sub" style="margin-top:10px">
-      Autospeichern ist aktiv. Für „ewiges Archiv“ nutze unten <b>Backup speichern</b>.
+      Autospeichern ist aktiv. Für „ewiges Archiv“ nutze rechts <b>Backup speichern</b>.
     </div>
   </div>
 
-  <!-- RECHTS: Tracker + Jahreskalender + Backup -->
-  <div class="card" id="rightCard">
-    <div class="sub">Lädt…</div>
-  </div>
-  <script>
+  <!-- RECHTS -->
+  <div class="card" id="rightCard"></div>
+</main>
+
+<script>
 (() => {
   const START_YEAR = 2002;
   const END_YEAR = 2030;
 
-  // Status: 0 leer, 1 Kaza, 2 Farz, 3 Sünnet+Wajib, 4 Cemaat
-  const DB_KEY = "namastakip_v9_db";
+  // 0 leer, 1 Kaza, 2 Farz, 3 Sünnet+Wajib, 4 Cemaat
+  const PRAYERS = ["sabah","ogle","ikindi","aksam","yatsi","vitir"];
+  const FIVE_KEYS = ["sabah","ogle","ikindi","aksam","yatsi"]; // Namaz-Tag = diese 5
+  const DB_KEY = "namastakip_final_db_v1";
+
   let db = {};
   try { db = JSON.parse(localStorage.getItem(DB_KEY) || "{}") || {}; } catch(e){ db = {}; }
-
-  const PRAYERS = ["sabah","ogle","ikindi","aksam","yatsi","vitir"];
-  const FIVE_KEYS = ["sabah","ogle","ikindi","aksam","yatsi"]; // „Namaz-Tag“ = diese 5
 
   const pad2 = (n)=>String(n).padStart(2,"0");
   const iso = (y,m,d)=>`${y}-${pad2(m)}-${pad2(d)}`;
   const daysInMonth = (y,m0)=>new Date(y,m0+1,0).getDate();
   const wd = (d)=>["So","Mo","Di","Mi","Do","Fr","Sa"][d.getDay()];
-  const fmtShort = (d)=>`${wd(d)} ${pad2(d.getDate())}.${pad2(d.getMonth()+1)}`; // kurz fürs iPhone
+  const fmtShort = (d)=>`${wd(d)} ${pad2(d.getDate())}.${pad2(d.getMonth()+1)}`;
   const monthName = (m0)=>["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"][m0];
+  const monthNames = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+  const weekNames = ["Mo","Di","Mi","Do","Fr","Sa","So"];
 
   function ensureDay(dateISO){
     if(!db[dateISO]){
@@ -274,17 +272,12 @@ td:first-child {
     }
     return db[dateISO];
   }
-
-  function saveDB(){
-    localStorage.setItem(DB_KEY, JSON.stringify(db));
-  }
+  function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
 
   function statusClass(s){
     return s===1 ? "kaza" : s===2 ? "farz" : s===3 ? "sunnet" : s===4 ? "cemaat" : "";
   }
-  function symbol(s){
-    return s===0 ? "" : "✓";
-  }
+  function symbol(s){ return s===0 ? "" : "✓"; }
 
   // DOM
   const selYear = document.getElementById("selYear");
@@ -359,6 +352,186 @@ td:first-child {
     updateRight();
   }
 
+  // Tracker: ganzer Tag
+  function isFullDay5(rec){
+    for(const k of FIVE_KEYS){
+      if((rec?.[k] || 0) === 0) return false;
+    }
+    return true;
+  }
+
+  function updateRight(){
+    const year = parseInt(selYear.value,10);
+
+    // Tracker: gesamte erledigte Namaz-Tage (alle gespeicherten Daten)
+    let doneDays = 0;
+    for(const dateISO in db){
+      if(isFullDay5(db[dateISO])) doneDays++;
+    }
+    const months = doneDays / 30;
+    const years = months / 12;
+
+    rightCard.innerHTML = `
+      <h3 style="margin:0 0 8px 0; font-size:15px;">Tracker (ganze Tage) & Jahreskalender</h3>
+
+      <div class="sub" style="margin:0 0 10px 0;">
+        „Namaz-Tag“ = <b>Sabah–Yatsı</b> erledigt (Farben egal). Vitir ist extra.
+      </div>
+
+      <div class="smallRow"><span>Namaz-Tage erledigt</span><b>${doneDays}</b></div>
+      <div class="smallRow"><span>Entspricht Monate (÷30)</span><b>${months.toFixed(2)}</b></div>
+      <div class="smallRow"><span>Entspricht Jahre (÷12)</span><b>${years.toFixed(2)}</b></div>
+
+      <div style="height:12px;"></div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div class="sub" style="margin:0;"><b>Jahreskalender ✓</b> (Sabah–Yatsı erledigt)</div>
+        <span class="pill">Jahr: <b>${year}</b></span>
+      </div>
+
+      <div class="yearGrid" id="yearCalendar" style="margin-top:10px;"></div>
+
+      <div style="height:12px;"></div>
+
+      <div class="sub"><b>Backup (ewiges Archiv)</b></div>
+      <div class="sub" style="margin-top:6px;">
+        Speichere die Backup-Datei in <b>Dateien → iCloud Drive</b> (für neues Handy).
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+        <button id="btnSaveFile">Backup speichern</button>
+        <button id="btnLoadFile">Backup laden</button>
+        <button id="btnExportText">Export (Text)</button>
+        <button id="btnImportText">Import (Text)</button>
+      </div>
+
+      <textarea id="backupText" placeholder="Export-Text erscheint hier… oder Import-Text einfügen"></textarea>
+      <input id="filePicker" type="file" accept="application/json" style="display:none" />
+    `;
+
+    // Render year calendar
+    renderYearCalendar(year);
+
+    // Hook buttons
+    const btnSaveFile = document.getElementById("btnSaveFile");
+    const btnLoadFile = document.getElementById("btnLoadFile");
+    const btnExportText = document.getElementById("btnExportText");
+    const btnImportText = document.getElementById("btnImportText");
+    const backupText = document.getElementById("backupText");
+    const filePicker = document.getElementById("filePicker");
+
+    btnSaveFile.addEventListener("click", ()=>{
+      const payload = { version: "final-v1", savedAt: new Date().toISOString(), db };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+      const now = new Date();
+      const stamp = `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
+      const filename = `namastakip-backup-${stamp}.json`;
+
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download=filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1200);
+    });
+
+    btnLoadFile.addEventListener("click", ()=>{
+      filePicker.value="";
+      filePicker.click();
+    });
+
+    filePicker.addEventListener("change", async ()=>{
+      const f = filePicker.files && filePicker.files[0];
+      if(!f) return;
+      try{
+        const txt = await f.text();
+        const obj = JSON.parse(txt);
+        if(!obj || typeof obj !== "object" || !obj.db) throw new Error("invalid");
+        db = obj.db;
+        saveDB();
+        renderMonth(); // will call updateRight
+        alert("Backup geladen ✅");
+      }catch(e){
+        alert("Backup konnte nicht geladen werden (ungültige Datei).");
+      }
+    });
+
+    btnExportText.addEventListener("click", ()=>{
+      const payload = { version:"final-v1", savedAt:new Date().toISOString(), db };
+      backupText.value = JSON.stringify(payload);
+      backupText.focus();
+      backupText.select();
+    });
+
+    btnImportText.addEventListener("click", ()=>{
+      const txt = (backupText.value||"").trim();
+      if(!txt) return alert("Bitte Import-Text einfügen.");
+      try{
+        const obj = JSON.parse(txt);
+        if(!obj || typeof obj !== "object" || !obj.db) throw new Error("invalid");
+        db = obj.db;
+        saveDB();
+        renderMonth();
+        alert("Import abgeschlossen ✅");
+      }catch(e){
+        alert("Import fehlgeschlagen (Text ungültig).");
+      }
+    });
+
+    function renderYearCalendar(y){
+      const cal = document.getElementById("yearCalendar");
+      cal.innerHTML = "";
+
+      for(let m0=0; m0<12; m0++){
+        const box = document.createElement("div");
+        box.className = "mBox";
+
+        const head = document.createElement("div");
+        head.className = "mHead";
+        head.innerHTML = `<b style="color:var(--muted); font-size:13px;">${monthNames[m0]}</b><span class="pill" style="padding:5px 8px;">${y}</span>`;
+        box.appendChild(head);
+
+        const dow = document.createElement("div");
+        dow.className = "dow";
+        for(const w of weekNames){
+          const el = document.createElement("div");
+          el.textContent = w;
+          dow.appendChild(el);
+        }
+        box.appendChild(dow);
+
+        const grid = document.createElement("div");
+        grid.className = "grid";
+
+        const first = new Date(y, m0, 1);
+        const shift = (first.getDay() + 6) % 7; // Mo=0
+        const dim = daysInMonth(y,m0);
+
+        for(let i=0; i<shift; i++){
+          const c=document.createElement("div");
+          c.className="d off";
+          grid.appendChild(c);
+        }
+
+        for(let d=1; d<=dim; d++){
+          const dateISO = iso(y, m0+1, d);
+          const rec = db[dateISO];
+          const done = rec && isFullDay5(rec);
+
+          const c=document.createElement("div");
+          c.className = "d" + (done ? " done" : "");
+          c.textContent = done ? "✓" : String(d);
+          grid.appendChild(c);
+        }
+
+        box.appendChild(grid);
+        cal.appendChild(box);
+      }
+    }
+  }
+
+  // Controls
   btnToday.addEventListener("click", ()=>{
     const now = new Date();
     selYear.value = String(Math.max(START_YEAR, Math.min(END_YEAR, now.getFullYear())));
@@ -385,260 +558,13 @@ td:first-child {
   selYear.addEventListener("change", renderMonth);
   selMonth.addEventListener("change", renderMonth);
 
-  // Expose minimal API
-  window.__namastakipV9 = {
-    getDB: ()=>db,
-    setDB: (next)=>{ db = next || {}; saveDB(); renderMonth(); },
-    getSelectedYear: ()=>parseInt(selYear.value,10),
-    FIVE_KEYS,
-    PRAYERS
-  };
-
-  // ===== Rechte Seite (Tracker + Kalender + Backup) wird in Teil 3 aufgebaut =====
-  function updateRight(){
-    if(typeof window.__namastakipUpdateRight === "function") window.__namastakipUpdateRight();
-  }
-
   // Boot
   fillSelectors();
   const now = new Date();
   selYear.value = String(Math.max(START_YEAR, Math.min(END_YEAR, now.getFullYear())));
   selMonth.value = String(now.getMonth());
   renderMonth();
-
 })();
 </script>
-<script>
-(() => {
-  const rightCard = document.getElementById("rightCard");
-
-  rightCard.innerHTML = `
-    <h3 style="margin:0 0 8px 0; font-size:15px;">Tracker (ganze Tage) & Jahreskalender</h3>
-
-    <div style="border:1px solid var(--line); border-radius:12px; padding:10px; background:rgba(0,0,0,.12);">
-      <div class="sub" style="margin:0 0 8px 0;">
-        „Namaz-Tag“ = <b>Sabah–Yatsı</b> erledigt (Farben egal). Vitir ist extra.
-      </div>
-
-      <div style="display:grid; gap:6px; font-size:13px;">
-        <div style="display:flex; justify-content:space-between;">
-          <span>Namaz-Tage erledigt</span><b id="doneDays">0</b>
-        </div>
-        <div style="display:flex; justify-content:space-between;">
-          <span>Entspricht Monate (÷30)</span><b id="doneMonths">0.00</b>
-        </div>
-        <div style="display:flex; justify-content:space-between;">
-          <span>Entspricht Jahre (Monate ÷12)</span><b id="doneYears">0.00</b>
-        </div>
-      </div>
-    </div>
-
-    <div style="height:12px;"></div>
-
-    <div style="border:1px solid var(--line); border-radius:12px; padding:10px; background:rgba(0,0,0,.12);">
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-        <div class="sub" style="margin:0;"><b>Jahreskalender ✓</b> (Sabah–Yatsı erledigt)</div>
-        <span class="pill">Jahr: <b id="calYear">–</b></span>
-      </div>
-      <div class="yearGrid" id="yearCalendar" style="margin-top:10px;"></div>
-    </div>
-
-    <div style="height:12px;"></div>
-
-    <div style="border:1px solid var(--line); border-radius:12px; padding:10px; background:rgba(0,0,0,.12);">
-      <div class="sub" style="margin:0 0 8px 0;"><b>Backup (ewiges Archiv)</b></div>
-
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button id="btnSaveFile">Backup speichern</button>
-        <button id="btnLoadFile">Backup laden</button>
-        <button id="btnExportText">Export (Text)</button>
-        <button id="btnImportText">Import (Text)</button>
-      </div>
-
-      <textarea id="backupText" placeholder="Export-Text erscheint hier… oder Import-Text einfügen"></textarea>
-      <div class="sub" style="margin-top:8px;">
-        Tipp: Backup speichern → in Dateien/iCloud ablegen → bei neuem Handy wieder laden.
-      </div>
-
-      <input id="filePicker" type="file" accept="application/json" style="display:none" />
-    </div>
-  `;
-
-  const doneDaysEl = document.getElementById("doneDays");
-  const doneMonthsEl = document.getElementById("doneMonths");
-  const doneYearsEl = document.getElementById("doneYears");
-  const calYearEl = document.getElementById("calYear");
-  const yearCalendar = document.getElementById("yearCalendar");
-
-  const btnSaveFile = document.getElementById("btnSaveFile");
-  const btnLoadFile = document.getElementById("btnLoadFile");
-  const btnExportText = document.getElementById("btnExportText");
-  const btnImportText = document.getElementById("btnImportText");
-  const backupText = document.getElementById("backupText");
-  const filePicker = document.getElementById("filePicker");
-
-  const pad2 = (n)=>String(n).padStart(2,"0");
-  const iso = (y,m,d)=>`${y}-${pad2(m)}-${pad2(d)}`;
-  const daysInMonth = (y,m0)=>new Date(y,m0+1,0).getDate();
-  const monthNames = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
-  const weekNames = ["Mo","Di","Mi","Do","Fr","Sa","So"];
-
-  function isFullDay5(rec){
-    const FIVE = window.__namastakipV9.FIVE_KEYS;
-    for(const k of FIVE){
-      const v = rec?.[k] || 0;
-      if(v === 0) return false;
-    }
-    return true;
-  }
-
-  function updateRight(){
-    const api = window.__namastakipV9;
-    const db = api.getDB();
-
-    // Tracker: ganze Tage
-    let doneDays = 0;
-    for(const dateISO in db){
-      if(isFullDay5(db[dateISO])) doneDays++;
-    }
-    const months = doneDays / 30;
-    const years = months / 12;
-
-    doneDaysEl.textContent = String(doneDays);
-    doneMonthsEl.textContent = months.toFixed(2);
-    doneYearsEl.textContent = years.toFixed(2);
-
-    // Kalender: ausgewähltes Jahr
-    const year = api.getSelectedYear();
-    calYearEl.textContent = String(year);
-    renderYearCalendar(year, db);
-  }
-
-  function renderYearCalendar(year, db){
-    yearCalendar.innerHTML = "";
-    for(let m0=0; m0<12; m0++){
-      const box = document.createElement("div");
-      box.className = "mBox";
-
-      const head = document.createElement("div");
-      head.className = "mHead";
-      head.innerHTML = `<b style="color:var(--muted); font-size:13px;">${monthNames[m0]}</b><span class="pill" style="padding:5px 8px;">${year}</span>`;
-      box.appendChild(head);
-
-      const dow = document.createElement("div");
-      dow.className = "dow";
-      for(const w of weekNames){
-        const el = document.createElement("div");
-        el.textContent = w;
-        dow.appendChild(el);
-      }
-      box.appendChild(dow);
-
-      const grid = document.createElement("div");
-      grid.className = "grid";
-
-      const first = new Date(year, m0, 1);
-      const shift = (first.getDay() + 6) % 7; // Mo=0
-      const dim = daysInMonth(year,m0);
-
-      for(let i=0; i<shift; i++){
-        const c=document.createElement("div");
-        c.className="d off";
-        grid.appendChild(c);
-      }
-
-      for(let d=1; d<=dim; d++){
-        const dateISO = iso(year, m0+1, d);
-        const rec = db[dateISO];
-        const done = rec && isFullDay5(rec);
-
-        const c=document.createElement("div");
-        c.className = "d" + (done ? " done" : "");
-        c.textContent = done ? "✓" : String(d);
-        grid.appendChild(c);
-      }
-
-      box.appendChild(grid);
-      yearCalendar.appendChild(box);
-    }
-  }
-
-  // Backup Datei
-  btnSaveFile.addEventListener("click", ()=>{
-    const api = window.__namastakipV9;
-    const payload = {
-      version: 9,
-      savedAt: new Date().toISOString(),
-      db: api.getDB()
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
-    const now = new Date();
-    const stamp = `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
-    const filename = `namastakip-backup-${stamp}.json`;
-
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);
-    a.download=filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href),1200);
-  });
-
-  // Backup laden Datei
-  btnLoadFile.addEventListener("click", ()=>{
-    filePicker.value="";
-    filePicker.click();
-  });
-
-  filePicker.addEventListener("change", async ()=>{
-    const f = filePicker.files && filePicker.files[0];
-    if(!f) return;
-    try{
-      const txt = await f.text();
-      const obj = JSON.parse(txt);
-      if(!obj || typeof obj !== "object" || !obj.db) throw new Error("invalid");
-      window.__namastakipV9.setDB(obj.db);
-      updateRight();
-      alert("Backup geladen ✅");
-    }catch(e){
-      alert("Backup konnte nicht geladen werden (ungültige Datei).");
-    }
-  });
-
-  // Export Text
-  btnExportText.addEventListener("click", ()=>{
-    const api = window.__namastakipV9;
-    const payload = { version:9, savedAt:new Date().toISOString(), db: api.getDB() };
-    backupText.value = JSON.stringify(payload);
-    backupText.focus();
-    backupText.select();
-  });
-
-  // Import Text
-  btnImportText.addEventListener("click", ()=>{
-    const txt = (backupText.value||"").trim();
-    if(!txt) return alert("Bitte Import-Text einfügen.");
-    try{
-      const obj = JSON.parse(txt);
-      if(!obj || typeof obj !== "object" || !obj.db) throw new Error("invalid");
-      window.__namastakipV9.setDB(obj.db);
-      updateRight();
-      alert("Import abgeschlossen ✅");
-    }catch(e){
-      alert("Import fehlgeschlagen (Text ungültig).");
-    }
-  });
-
-  // Hook für Teil 2
-  window.__namastakipUpdateRight = updateRight;
-
-  // Start
-  updateRight();
-
-})();
-</script>
-
-</main>
 </body>
 </html>

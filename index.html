@@ -1,500 +1,252 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Namastakip</title>
-  <style>
-    :root{
-      --bg:#0b0f14; --panel:#121824; --panel2:#0f1520;
-      --text:#e8eef7; --muted:#9fb0c7; --line:#223049;
-      --green:#2ee59d; --black:#0b0b0b; --danger:#ff5a6a; --accent:#5ad1ff;
-      --cell:42px; --radius:14px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      background: radial-gradient(900px 600px at 10% 0%, #0f1a2e 0%, var(--bg) 55%);
-      color:var(--text);
-    }
-    header{
-      position:sticky; top:0; z-index:30;
-      background: linear-gradient(180deg, rgba(11,15,20,.96), rgba(11,15,20,.78));
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--line);
-    }
-    .topbar{
-      max-width:1200px; margin:0 auto; padding:12px 14px;
-      display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
-    }
-    h1{margin:0;font-size:20px;letter-spacing:.2px}
-    .sub{color:var(--muted);font-size:13px;line-height:1.35;margin-top:6px}
-    .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:flex-end}
-    .btn, select, input{
-      border:1px solid var(--line);
-      background: linear-gradient(180deg, rgba(18,24,36,.95), rgba(15,21,32,.95));
-      color:var(--text);
-      border-radius:12px;
-      padding:10px 12px;
-      font-size:14px;
-      outline:none;
-    }
-    .btn{cursor:pointer; user-select:none}
-    .btn:active{transform:translateY(1px)}
-    .btn.ok{border-color: rgba(46,229,157,.45)}
-    .btn.danger{border-color: rgba(255,90,106,.45)}
-    .btn.ghost{background: rgba(0,0,0,.10)}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Namastakip</title>
 
-    main{
-      max-width:1200px; margin:0 auto; padding:14px 14px 40px;
-      display:grid; grid-template-columns: 1.55fr .95fr; gap:14px;
-    }
-    @media (max-width:980px){ main{grid-template-columns:1fr} .controls{justify-content:flex-start} }
+<style>
+:root{
+  --bg1:#35d0d6;
+  --bg2:#0aa0a8;
+  --panel:rgba(8,20,24,.75);
+  --panel2:rgba(8,20,24,.6);
+  --text:#ecfbff;
+  --muted:#c9f3f7;
+  --line:rgba(255,255,255,.18);
 
-    .card{
-      border:1px solid var(--line);
-      background: linear-gradient(180deg, rgba(18,24,36,.96), rgba(15,21,32,.96));
-      border-radius: var(--radius);
-      box-shadow: 0 10px 30px rgba(0,0,0,.22);
-      overflow:hidden;
-    }
-    .hd{
-      padding:12px 12px;
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
-      border-bottom:1px solid var(--line);
-    }
-    .hd b{font-size:14px; letter-spacing:.2px}
-    .bd{padding:12px}
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      border:1px solid var(--line);
-      background: rgba(0,0,0,.12);
-      padding:7px 10px;
-      border-radius:999px;
-      color:var(--muted);
-      font-size:12px;
-      white-space:nowrap;
-    }
+  --kaza:#111;        /* schwarz */
+  --farz:#ff5a5a;    /* rot */
+  --sunnet:#ffd84d;  /* gelb */
+  --cemaat:#35e38f;  /* grün */
 
-    /* table wrap */
-    .tableWrap{
-      overflow:auto;
-      -webkit-overflow-scrolling: touch;
-      border:1px solid var(--line);
-      border-radius:12px;
-    }
-    table{
-      width:100%;
-      min-width: 780px; /* iPhone: verhindert Kollaps */
-      border-collapse:separate;
-      border-spacing:0;
-    }
-    thead th{
-      position: sticky; top:0; z-index:6;
-      background: rgba(18,24,36,.98);
-      border-bottom:1px solid var(--line);
-    }
-    th, td{
-      padding:10px 10px;
-      text-align:center;
-      font-size:14px;
-      border-bottom:1px solid rgba(34,48,73,.55);
-    }
-    /* sticky date column */
-    th:first-child, td:first-child{
-      text-align:left;
-      position: sticky; left:0; z-index:5;
-      background: rgba(18,24,36,.98);
-      border-right:1px solid rgba(34,48,73,.55);
-      min-width: 175px;
-    }
-    tbody tr:hover td{ background: rgba(255,255,255,.02); }
-    tbody tr:hover td:first-child{ background: rgba(18,24,36,.98); }
+  --cell:40px;
+  --radius:14px;
+}
 
-    .phead{font-size:12px;color:var(--muted);letter-spacing:.2px}
-    .cellBtn{
-      width:var(--cell); height:var(--cell);
-      border-radius:12px;
-      border:1px solid rgba(34,48,73,.65);
-      background: rgba(0,0,0,.14);
-      display:inline-flex; align-items:center; justify-content:center;
-      font-size:18px;
-      cursor:pointer;
-      user-select:none;
-    }
-    .cellBtn:active{transform:translateY(1px)}
-    .state0{ color: transparent; } /* leer */
-    .state1{
-      color:#061b12;
-      background: linear-gradient(180deg, rgba(46,229,157,.95), rgba(46,229,157,.65));
-      border-color: rgba(46,229,157,.55);
-      box-shadow: 0 6px 14px rgba(46,229,157,.12);
-    }
-    .state2{
-      color:#fff;
-      background: linear-gradient(180deg, rgba(11,11,11,.95), rgba(11,11,11,.75));
-      border-color: rgba(255,255,255,.18);
-    }
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  color:var(--text);
+  background:linear-gradient(180deg,var(--bg1),var(--bg2));
+}
 
-    .muted{color:var(--muted);font-size:13px;line-height:1.35}
-    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-    @media (max-width:520px){ .grid2{grid-template-columns:1fr} }
+header{
+  position:sticky; top:0; z-index:10;
+  background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.15));
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
 
-    .pillRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    .metric{
-      border:1px solid var(--line);
-      background: rgba(0,0,0,.12);
-      border-radius: 14px;
-      padding:12px;
-    }
-    .metric h3{margin:0 0 8px 0; font-size:13px; color:var(--muted); letter-spacing:.2px}
-    .big{
-      font-weight:800;
-      font-size:20px;
-      letter-spacing:.2px;
-      margin:4px 0 0 0;
-    }
-    .bar{
-      height:12px;
-      border-radius:999px;
-      border:1px solid rgba(34,48,73,.8);
-      background: rgba(0,0,0,.18);
-      overflow:hidden;
-      margin-top:10px;
-    }
-    .bar > div{
-      height:100%;
-      width:0%;
-      background: linear-gradient(90deg, rgba(90,209,255,.95), rgba(46,229,157,.95));
-    }
-    .rows{display:grid; gap:8px; margin-top:10px}
-    .row{
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      padding:10px 12px;
-      border:1px solid rgba(34,48,73,.6);
-      background: rgba(0,0,0,.12);
-      border-radius: 12px;
-      font-size:14px;
-    }
-    .badge{
-      font-variant-numeric: tabular-nums;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid rgba(34,48,73,.7);
-      background: rgba(255,255,255,.04);
-      min-width: 56px;
-      text-align:center;
-    }
-    textarea{
-      width:100%;
-      min-height:140px;
-      resize:vertical;
-      font-size:12px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background: rgba(0,0,0,.18);
-      color:var(--text);
-      padding:10px;
-      outline:none;
-    }
-    input[type="file"]{display:none}
-    .actions{display:flex; flex-wrap:wrap; gap:10px; help:1}
-  </style>
+.top{
+  max-width:1100px;
+  margin:auto;
+  padding:12px;
+}
+
+h1{margin:0;font-size:20px}
+.sub{font-size:13px;color:var(--muted);margin-top:6px}
+
+main{
+  max-width:1100px;
+  margin:auto;
+  padding:12px;
+}
+
+.card{
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+
+th,td{
+  text-align:center;
+  padding:6px 4px;
+  border-bottom:1px solid var(--line);
+  font-size:13px;
+}
+
+th:first-child,td:first-child{
+  text-align:left;
+  width:140px;
+}
+
+.cell{
+  width:var(--cell);
+  height:var(--cell);
+  border-radius:10px;
+  border:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  user-select:none;
+}
+
+.cell.kaza{background:var(--kaza)}
+.cell.farz{background:var(--farz)}
+.cell.sunnet{background:var(--sunnet); color:#000}
+.cell.cemaat{background:var(--cemaat)}
+
+.controls{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+button,select{
+  background:rgba(0,0,0,.2);
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:8px 10px;
+}
+button{cursor:pointer}
+</style>
 </head>
 <body>
-
 <header>
-  <div class="topbar">
-    <div>
-      <h1>Namastakip</h1>
-      <div class="sub">
-        Tippen: <b>leer</b> → <span style="color:var(--green);font-weight:800;">Eda</span> → <b>⚫ Kaza</b> → leer.
-        <br/>Wichtig: Nutze „<b>Backup speichern</b>“ für ewiges Archiv (iCloud/Handywechsel).
-      </div>
-    </div>
-
-    <div class="controls">
-      <button class="btn" id="btnToday">Heute</button>
-
-      <span class="pill">Jahr:
-        <select id="selYear"></select>
-      </span>
-
-      <span class="pill">Monat:
-        <select id="selMonth"></select>
-      </span>
-
-      <button class="btn danger" id="btnClearMonth">Monat löschen</button>
+  <div class="top">
+    <h1>Namastakip</h1>
+    <div class="sub">
+      Tippen = Status wechseln:
+      ⬛ Kaza → 🔴 Farz → 🟡 Sünnet+Wajib → 🟢 Cemaat
     </div>
   </div>
 </header>
 
 <main>
-  <!-- LEFT -->
-  <section class="card">
-    <div class="hd">
-      <b>Tabelle</b>
-      <span class="pill" id="rangeLabel">Zeitraum: –</span>
-    </div>
-    <div class="bd">
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Datum</th>
-              <th class="phead">Sabah</th>
-              <th class="phead">Öğle</th>
-              <th class="phead">İkindi</th>
-              <th class="phead">Akşam</th>
-              <th class="phead">Yatsı</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-      <div class="muted" style="margin-top:10px;">
-        Hinweis: Diese Ansicht lädt immer nur einen Monat (schnell auf iPhone). Deine Daten gelten trotzdem für alle Jahre.
-      </div>
-    </div>
-  </section>
+<div class="card">
+  <div class="controls">
+    <button id="btnToday">Heute</button>
 
-  <!-- RIGHT -->
-  <aside class="card">
-    <div class="hd">
-      <b>Archiv & Fortschritt</b>
-      <span class="pill" id="saveState">Autosave ✅</span>
-    </div>
+    <select id="selYear"></select>
+    <select id="selMonth"></select>
 
-    <div class="bd">
-      <!-- Settings -->
-      <div class="metric">
-        <h3>Einstellungen</h3>
-        <div class="muted">Geburtsdatum (für Pflicht-Berechnung):</div>
-        <div class="actions" style="margin-top:8px;">
-          <input id="birthDate" type="date" />
-          <span class="pill">Pflicht ab <b>&nbsp;10&nbsp;</b> Jahren</span>
-          <button class="btn ok" id="btnApplyBirth">Übernehmen</button>
-        </div>
-        <div class="muted" style="margin-top:8px;">
-          Tipp: Trage dein echtes Geburtsdatum ein, damit „Pflicht seit …“ exakt stimmt.
-        </div>
-      </div>
+    <button id="btnClearMonth">Monat löschen</button>
+  </div>
 
-      <div style="height:12px;"></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Datum</th>
+        <th>Sabah</th>
+        <th>Öğle</th>
+        <th>İkindi</th>
+        <th>Akşam</th>
+        <th>Yatsı</th>
+        <th>Vitir (Wajib)</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
 
-      <!-- Progress -->
-      <div class="metric">
-        <h3>Gesamt-Fortschritt seit Pflicht</h3>
-        <div class="rows">
-          <div class="row">
-            <div>Pflicht seit</div>
-            <div class="badge" id="sinceLabel">–</div>
-          </div>
-          <div class="row">
-            <div>Pflicht-Tage</div>
-            <div class="badge" id="daysReq">0</div>
-          </div>
-          <div class="row">
-            <div>Gebete nötig (5/Tag)</div>
-            <div class="badge" id="prayersReq">0</div>
-          </div>
-          <div class="row">
-            <div>Erledigt (Eda + Kaza)</div>
-            <div class="badge" id="prayersDone">0</div>
-          </div>
-          <div class="row">
-            <div>Noch offen</div>
-            <div class="badge" id="prayersLeft">0</div>
-          </div>
-        </div>
-        <div class="bar" aria-label="Fortschritt">
-          <div id="barFill"></div>
-        </div>
-        <div class="muted" style="margin-top:8px;">
-          Der Balken zeigt: erledigt / nötig. (Eda + Kaza zählen als „erledigt“.)
-        </div>
-      </div>
+  <div class="sub" style="margin-top:10px">
+    Hinweis: Alles speichert automatisch auf deinem Handy. Für „ewiges Archiv“ kommt im Backup-Bereich ein Speichern-Button.
+  </div>
+</div>
 
-      <div style="height:12px;"></div>
-
-      <!-- Trackers -->
-      <div class="metric">
-        <h3>Tracker</h3>
-        <div class="grid2">
-          <div>
-            <div class="muted" style="margin-bottom:6px;">Eda (pünktlich)</div>
-            <div class="rows" id="edaRows"></div>
-          </div>
-          <div>
-            <div class="muted" style="margin-bottom:6px;">Kaza</div>
-            <div class="rows" id="kazaRows"></div>
-          </div>
-        </div>
-      </div>
-
-      <div style="height:12px;"></div>
-
-      <!-- Backup -->
-      <div class="metric">
-        <h3>Backup (sehr wichtig)</h3>
-        <div class="actions">
-          <button class="btn ok" id="btnSaveFile">Backup speichern</button>
-          <button class="btn" id="btnLoadFile">Backup laden</button>
-          <button class="btn" id="btnExportText">Export (Text)</button>
-          <button class="btn" id="btnImportText">Import (Text)</button>
-          <button class="btn danger" id="btnResetAll">Alles löschen</button>
-        </div>
-
-        <textarea id="backupText" placeholder="Export-Text erscheint hier… (oder Import-Text einfügen)"></textarea>
-        <div class="muted" style="margin-top:8px;">
-          Empfehlung: „Backup speichern“ → iPhone fragt → speichere in <b>Dateien → iCloud Drive</b>.
-          Dann ist es auch bei neuem Handy sicher.
-        </div>
-      </div>
-
-      <input id="filePicker" type="file" accept="application/json" />
-    </div>
-  </aside>
-</main>
+<!-- Rechte Box (Zähler + Backup) kommt in Teil 3 -->
+<div class="card" style="margin-top:12px">
+  <h3 style="margin:0 0 8px 0; font-size:15px;">Zähler & Backup</h3>
+  <div class="sub">Kommt gleich in Teil 3 (Balken + Speichern + Export/Import).</div>
+</div>
 
 <script>
 (() => {
-  // ---------- Keys ----------
-  const DB_KEY = "namastakip_archive_v3";
-  const SETTINGS_KEY = "namastakip_settings_v1";
-
-  // ---------- Config ----------
+  // ====== KONFIG ======
   const START_YEAR = 2002;
   const END_YEAR   = 2030;
 
   const PRAYERS = [
-    { key: "sabah", label: "Sabah" },
-    { key: "ogle",  label: "Öğle"  },
-    { key: "ikindi",label: "İkindi"},
-    { key: "aksam", label: "Akşam" },
-    { key: "yatsi", label: "Yatsı" },
+    { key:"sabah",  label:"Sabah" },
+    { key:"ogle",   label:"Öğle" },
+    { key:"ikindi", label:"İkindi" },
+    { key:"aksam",  label:"Akşam" },
+    { key:"yatsi",  label:"Yatsı" },
+    { key:"vitir",  label:"Vitir" },
   ];
 
-  // status: 0 empty, 1 eda, 2 kaza
-  const symbol = (st) => st === 1 ? "✓" : st === 2 ? "✓" : "•";
-  const cls = (st) => st === 1 ? "state1" : st === 2 ? "state2" : "state0";
+  // Status: 0 leer, 1 Kaza (schwarz), 2 Farz (rot), 3 Sünnet+Wajib (gelb), 4 Cemaat (grün)
+  const statusClass = (s) =>
+    s===1 ? "kaza" : s===2 ? "farz" : s===3 ? "sunnet" : s===4 ? "cemaat" : "";
 
-  // ---------- Helpers ----------
+  const statusSymbol = (s) => s===0 ? "" : "✓";
+
+  const DB_KEY = "namastakip_v4_db";
+  let db = {};
+  try{ db = JSON.parse(localStorage.getItem(DB_KEY) || "{}") || {}; }catch(e){ db = {}; }
+
+  // ====== HELPERS ======
   const pad2 = (n) => String(n).padStart(2,"0");
   const iso = (y,m,d) => `${y}-${pad2(m)}-${pad2(d)}`;
   const daysInMonth = (y,m0) => new Date(y, m0+1, 0).getDate();
   const wd = (dateObj) => ["So","Mo","Di","Mi","Do","Fr","Sa"][dateObj.getDay()];
   const monthName = (m0) => ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"][m0];
-
-  function fmtDE(dateObj){
-    return `${wd(dateObj)} ${pad2(dateObj.getDate())}.${pad2(dateObj.getMonth()+1)}.${dateObj.getFullYear()}`;
-  }
-  function fmtISOShort(dateObj){
-    return `${dateObj.getFullYear()}-${pad2(dateObj.getMonth()+1)}-${pad2(dateObj.getDate())}`;
-  }
-
-  // ---------- DB ----------
-  let db = {};
-  try{ db = JSON.parse(localStorage.getItem(DB_KEY) || "{}") || {}; }catch(e){ db = {}; }
+  const fmtDE = (dateObj) => `${wd(dateObj)} ${pad2(dateObj.getDate())}.${pad2(dateObj.getMonth()+1)}.${dateObj.getFullYear()}`;
 
   function ensureDay(dateISO){
-    if(!db[noteKey(dateISO)]){
-      db[noteKey(dateISO)] = {};
-      for(const p of PRAYERS) db[noteKey(dateISO)][p.key] = 0;
-    }else{
+    if(!db[dateISO]){
+      db[dateISO] = {};
+      for(const p of PRAYERS) db[dateISO][p.key] = 0;
+    } else {
       for(const p of PRAYERS){
-        if(typeof db[noteKey(dateISO)][p.key] !== "number") db[noteKey(dateISO)][p.key] = 0;
+        if(typeof db[dateISO][p.key] !== "number") db[dateISO][p.key] = 0;
       }
     }
-    return db[noteKey(dateISO)];
+    return db[dateISO];
   }
-
-  // store keys as dateISO (kept as-is)
-  function noteKey(dateISO){ return dateISO; }
 
   function saveDB(){
     localStorage.setItem(DB_KEY, JSON.stringify(db));
-    document.getElementById("saveState").textContent = "Autosave ✅";
   }
 
-  // ---------- Settings ----------
-  let settings = { birthDate: "1998-01-01", obligationAge: 10 };
-  try{
-    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
-    if(s && typeof s === "object"){
-      settings = { ...settings, ...s };
-    }
-  }catch(e){}
-
-  function saveSettings(){
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  }
-
-  // ---------- UI ----------
+  // ====== UI ======
   const selYear = document.getElementById("selYear");
   const selMonth = document.getElementById("selMonth");
   const tbody = document.getElementById("tbody");
-  const rangeLabel = document.getElementById("rangeLabel");
-
-  const birthDateInput = document.getElementById("birthDate");
-  const btnApplyBirth = document.getElementById("btnApplyBirth");
-
-  const sinceLabel = document.getElementById("sinceLabel");
-  const daysReqEl = document.getElementById("daysReq");
-  const prayersReqEl = document.getElementById("prayersReq");
-  const prayersDoneEl = document.getElementById("prayersDone");
-  const prayersLeftEl = document.getElementById("prayersLeft");
-  const barFill = document.getElementById("barFill");
-
-  const edaRows = document.getElementById("edaRows");
-  const kazaRows = document.getElementById("kazaRows");
-
   const btnToday = document.getElementById("btnToday");
   const btnClearMonth = document.getElementById("btnClearMonth");
 
-  const btnSaveFile = document.getElementById("btnSaveFile");
-  const btnLoadFile = document.getElementById("btnLoadFile");
-  const filePicker = document.getElementById("filePicker");
-  const btnExportText = document.getElementById("btnExportText");
-  const btnImportText = document.getElementById("btnImportText");
-  const btnResetAll = document.getElementById("btnResetAll");
-  const backupText = document.getElementById("backupText");
-
-  // ---------- Fill selectors ----------
   function fillSelectors(){
     selYear.innerHTML = "";
     for(let y=END_YEAR; y>=START_YEAR; y--){
-      const opt = document.createElement("option");
-      opt.value = String(y);
-      opt.textContent = String(y);
-      selYear.appendChild(opt);
+      const o = document.createElement("option");
+      o.value = String(y);
+      o.textContent = String(y);
+      selYear.appendChild(o);
     }
+
     selMonth.innerHTML = "";
     for(let m0=0; m0<12; m0++){
-      const opt = document.createElement("option");
-      opt.value = String(m0);
-      opt.textContent = `${pad2(m0+1)} ${monthName(m0)}`;
-      selMonth.appendChild(opt);
+      const o = document.createElement("option");
+      o.value = String(m0);
+      o.textContent = `${pad2(m0+1)} ${monthName(m0)}`;
+      selMonth.appendChild(o);
     }
   }
 
-  // ---------- Render month ----------
   function renderMonth(){
     const year = parseInt(selYear.value,10);
     const m0 = parseInt(selMonth.value,10);
     const dim = daysInMonth(year,m0);
 
-    const startISO = iso(year,m0+1,1);
-    const endISO = iso(year,m0+1,dim);
-    rangeLabel.textContent = `Zeitraum: ${startISO} bis ${endISO}`;
-
     const frag = document.createDocumentFragment();
+    tbody.innerHTML = "";
 
     for(let d=1; d<=dim; d++){
       const dateObj = new Date(year,m0,d);
       const dateISO = iso(year,m0+1,d);
-      const day = ensureDay(dateISO);
+      const rec = ensureDay(dateISO);
 
       const tr = document.createElement("tr");
 
@@ -504,104 +256,36 @@
 
       for(const p of PRAYERS){
         const td = document.createElement("td");
-        const b = document.createElement("div");
-        b.className = `cellBtn ${cls(day[p.key]||0)}`;
-        b.textContent = symbol(day[p.key]||0);
+        const div = document.createElement("div");
+        div.className = "cell " + statusClass(rec[p.key]||0);
+        div.textContent = statusSymbol(rec[p.key]||0);
 
-        b.addEventListener("click", () => {
-          const rec = ensureDay(dateISO);
-          const cur = rec[p.key] || 0;
-          const next = (cur + 1) % 3;
-          rec[p.key] = next;
+        div.addEventListener("click", () => {
+          const day = ensureDay(dateISO);
+          const cur = day[p.key] || 0;
+          const next = (cur + 1) % 5; // 0->1->2->3->4->0
+          day[p.key] = next;
 
-          b.className = `cellBtn ${cls(next)}`;
-          b.textContent = symbol(next);
+          div.className = "cell " + statusClass(next);
+          div.textContent = statusSymbol(next);
 
           saveDB();
-          updateStats(); // global stats + trackers
+          // Zähler/Balken/Backup aktualisieren kommt in Teil 3
+          if(typeof window.__namastakipUpdateAll === "function") window.__namastakipUpdateAll();
         });
 
-        td.appendChild(b);
+        td.appendChild(div);
         tr.appendChild(td);
       }
 
       frag.appendChild(tr);
     }
 
-    tbody.innerHTML = "";
     tbody.appendChild(frag);
 
-    updateStats();
+    if(typeof window.__namastakipUpdateAll === "function") window.__namastakipUpdateAll();
   }
 
-  // ---------- Progress / Stats ----------
-  function obligationStartDate(){
-    // start = birthDate + 10 years
-    const bd = settings.birthDate || "1998-01-01";
-    const [y,m,d] = bd.split("-").map(n => parseInt(n,10));
-    const start = new Date(y + (settings.obligationAge||10), (m-1), d);
-    start.setHours(0,0,0,0);
-    return start;
-  }
-
-  function updateStats(){
-    // Count done prayers across ALL saved entries (sparse).
-    let doneTotal = 0;
-    const eda = Object.fromEntries(PRAYERS.map(p=>[p.key,0]));
-    const kaza = Object.fromEntries(PRAYERS.map(p=>[p.key,0]));
-
-    for(const dateISO in db){
-      const rec = db[dateISO];
-      if(!rec || typeof rec !== "object") continue;
-      for(const p of PRAYERS){
-        const v = rec[p.key] || 0;
-        if(v === 1){ doneTotal++; eda[p.key]++; }
-        else if(v === 2){ doneTotal++; kaza[p.key]++; }
-      }
-    }
-
-    // Required prayers from obligation start to today (inclusive)
-    const start = obligationStartDate();
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    // If start is in future, required = 0
-    let daysReq = 0;
-    if(start <= today){
-      const ms = (today.getTime() - start.getTime());
-      // inclusive: difference in days + 1
-      daysReq = Math.floor(ms / 86400000) + 1;
-    }
-
-    const prayersReq = daysReq * 5;
-    const left = Math.max(0, prayersReq - doneTotal);
-    const pct = prayersReq > 0 ? Math.min(100, Math.max(0, (doneTotal / prayersReq) * 100)) : 0;
-
-    sinceLabel.textContent = fmtISOShort(start);
-    daysReqEl.textContent = String(daysReq);
-    prayersReqEl.textContent = String(prayersReq);
-    prayersDoneEl.textContent = String(doneTotal);
-    prayersLeftEl.textContent = String(left);
-    barFill.style.width = `${pct.toFixed(2)}%`;
-
-    // render trackers
-    edaRows.innerHTML = "";
-    kazaRows.innerHTML = "";
-
-    for(const p of PRAYERS){
-      edaRows.appendChild(makeRow(p.label, eda[p.key]));
-      kazaRows.appendChild(makeRow(p.label, kaza[p.key]));
-    }
-  }
-
-  function makeRow(label, value){
-    const el = document.createElement("div");
-    el.className = "row";
-    el.innerHTML = `<div>${label}</div><div class="badge">${value}</div>`;
-    return el;
-  }
-
-  // ---------- Actions ----------
   btnToday.addEventListener("click", () => {
     const now = new Date();
     selYear.value = String(now.getFullYear());
@@ -610,15 +294,15 @@
   });
 
   btnClearMonth.addEventListener("click", () => {
-    const ok = confirm("Diesen Monat wirklich löschen? (nur gespeicherte Daten)");
+    const ok = confirm("Diesen Monat wirklich löschen?");
     if(!ok) return;
 
-    const y = parseInt(selYear.value,10);
+    const year = parseInt(selYear.value,10);
     const m0 = parseInt(selMonth.value,10);
-    const dim = daysInMonth(y,m0);
+    const dim = daysInMonth(year,m0);
 
     for(let d=1; d<=dim; d++){
-      const key = iso(y,m0+1,d);
+      const key = iso(year,m0+1,d);
       if(db[key]) delete db[key];
     }
     saveDB();
@@ -628,25 +312,257 @@
   selYear.addEventListener("change", renderMonth);
   selMonth.addEventListener("change", renderMonth);
 
-  // Birth settings
-  birthDateInput.value = settings.birthDate;
+  // ====== BOOT ======
+  fillSelectors();
+  const now = new Date();
+  const y = Math.max(START_YEAR, Math.min(END_YEAR, now.getFullYear()));
+  selYear.value = String(y);
+  selMonth.value = String(now.getMonth());
+  renderMonth();
+
+  // Export für Teil 3
+  window.__namastakipDB = {
+    get(){ return db; },
+    set(next){ db = next || {}; saveDB(); renderMonth(); },
+    save: saveDB
+  };
+})();
+</script>
+<script>
+(() => {
+  // ====== Einstellungen (Pflicht ab 10 Jahren, Geburt 1998 default) ======
+  const SETTINGS_KEY = "namastakip_v4_settings";
+  const DB_KEY = "namastakip_v4_db"; // muss zu Teil 2 passen
+
+  const PRAYERS_PER_DAY = 6; // 5 + Vitir
+  const obligationAge = 10;
+
+  let settings = { birthDate: "1998-01-01" };
+  try{
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+    if(s && typeof s === "object") settings = { ...settings, ...s };
+  }catch(e){}
+
+  function saveSettings(){
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  }
+
+  // ====== UI in rechter Box ersetzen (wir nutzen die vorhandene zweite Card) ======
+  // Wir suchen die zweite Card im main (die "Zähler & Backup" Box) und ersetzen deren Inhalt
+  const cards = document.querySelectorAll("main .card");
+  const rightCard = cards[cards.length - 1]; // die zweite card (unter der Tabelle)
+  rightCard.innerHTML = `
+    <h3 style="margin:0 0 8px 0; font-size:15px;">Zähler & Archiv</h3>
+
+    <div class="sub" style="margin:0 0 10px 0;">
+      Pflicht pro Tag: <b>${PRAYERS_PER_DAY}</b> (Sabah, Öğle, İkindi, Akşam, Yatsı, Vitir).
+      Tippen-Zyklus: ⬛ Kaza → 🔴 Farz → 🟡 Sünnet+Wajib → 🟢 Cemaat → leer
+    </div>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+      <span class="pill">Geburt: <input id="birthDate" type="date" style="padding:6px 8px; border-radius:10px;" /></span>
+      <button id="btnApplyBirth">Übernehmen</button>
+    </div>
+
+    <div style="border:1px solid var(--line); border-radius:12px; padding:10px; background:rgba(0,0,0,.12);">
+      <div class="sub" style="margin:0 0 6px 0;"><b>Gesamt-Fortschritt seit Pflicht</b></div>
+      <div style="display:grid; gap:6px; font-size:13px;">
+        <div style="display:flex; justify-content:space-between; gap:10px;">
+          <span>Pflicht seit</span><b id="sinceLabel">–</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; gap:10px;">
+          <span>Nötig (Gebete)</span><b id="needLabel">0</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; gap:10px;">
+          <span>Erledigt</span><b id="doneLabel">0</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; gap:10px;">
+          <span>Noch offen</span><b id="leftLabel">0</b>
+        </div>
+      </div>
+
+      <div style="margin-top:10px; height:12px; border-radius:999px; border:1px solid var(--line); background:rgba(0,0,0,.18); overflow:hidden;">
+        <div id="barFill" style="height:100%; width:0%; background:linear-gradient(90deg, rgba(90,209,255,.95), rgba(46,229,157,.95));"></div>
+      </div>
+    </div>
+
+    <div style="height:12px;"></div>
+
+    <div style="border:1px solid var(--line); border-radius:12px; padding:10px; background:rgba(0,0,0,.12);">
+      <div class="sub" style="margin:0 0 8px 0;"><b>Tracker (gesamt)</b></div>
+      <div id="trackers" style="display:grid; gap:6px;"></div>
+    </div>
+
+    <div style="height:12px;"></div>
+
+    <div style="border:1px solid var(--line); border-radius:12px; padding:10px; background:rgba(0,0,0,.12);">
+      <div class="sub" style="margin:0 0 6px 0;"><b>Backup (ewiges Archiv)</b></div>
+      <div class="sub" style="margin:0 0 10px 0;">
+        Für neues Handy: <b>Backup speichern</b> → in Dateien/iCloud ablegen → später <b>Backup laden</b>.
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="btnSaveFile">Backup speichern</button>
+        <button id="btnLoadFile">Backup laden</button>
+        <button id="btnExportText">Export (Text)</button>
+        <button id="btnImportText">Import (Text)</button>
+      </div>
+
+      <textarea id="backupText" placeholder="Export-Text erscheint hier… oder Import-Text einfügen"></textarea>
+
+      <div class="sub" style="margin-top:8px;">
+        Autospeichern ist immer aktiv. Der Backup-Button ist die Extra-Sicherheit.
+      </div>
+    </div>
+
+    <input id="filePicker" type="file" accept="application/json" style="display:none" />
+  `;
+
+  // ====== Elemente ======
+  const birthDate = document.getElementById("birthDate");
+  const btnApplyBirth = document.getElementById("btnApplyBirth");
+
+  const sinceLabel = document.getElementById("sinceLabel");
+  const needLabel  = document.getElementById("needLabel");
+  const doneLabel  = document.getElementById("doneLabel");
+  const leftLabel  = document.getElementById("leftLabel");
+  const barFill    = document.getElementById("barFill");
+  const trackersEl = document.getElementById("trackers");
+
+  const btnSaveFile = document.getElementById("btnSaveFile");
+  const btnLoadFile = document.getElementById("btnLoadFile");
+  const filePicker  = document.getElementById("filePicker");
+  const btnExportText = document.getElementById("btnExportText");
+  const btnImportText = document.getElementById("btnImportText");
+  const backupText = document.getElementById("backupText");
+
+  birthDate.value = settings.birthDate || "1998-01-01";
   btnApplyBirth.addEventListener("click", () => {
-    if(!birthDateInput.value){
-      alert("Bitte ein Geburtsdatum auswählen.");
-      return;
-    }
-    settings.birthDate = birthDateInput.value;
+    if(!birthDate.value) return alert("Bitte Geburtsdatum auswählen.");
+    settings.birthDate = birthDate.value;
     saveSettings();
-    updateStats();
+    updateAll();
     alert("Gespeichert ✅");
   });
 
-  // Backup: File save/load
+  // ====== Pflicht-Start berechnen ======
+  function obligationStart(){
+    const bd = (settings.birthDate || "1998-01-01").split("-").map(n=>parseInt(n,10));
+    const start = new Date(bd[0] + obligationAge, (bd[1]-1), bd[2]);
+    start.setHours(0,0,0,0);
+    return start;
+  }
+
+  function isoToday(d){
+    const pad2 = (n) => String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  }
+
+  // ====== Zählen: erledigt / tracker ======
+  const PRAYER_KEYS = ["sabah","ogle","ikindi","aksam","yatsi","vitir"];
+  const LABELS = { sabah:"Sabah", ogle:"Öğle", ikindi:"İkindi", aksam:"Akşam", yatsi:"Yatsı", vitir:"Vitir" };
+
+  function updateAll(){
+    // Daten holen
+    const raw = (window.__namastakipDB && window.__namastakipDB.get) ? window.__namastakipDB.get() : {};
+    const db = raw || {};
+
+    // Tracker gesamt nach Status
+    const counts = {};
+    for(const k of PRAYER_KEYS){
+      counts[k] = { kaza:0, farz:0, sunnet:0, cemaat:0 };
+    }
+
+    // Erledigt = status 1..4
+    let doneTotal = 0;
+    for(const dateISO in db){
+      const rec = db[dateISO];
+      if(!rec || typeof rec !== "object") continue;
+      for(const k of PRAYER_KEYS){
+        const v = rec[k] || 0;
+        if(v >= 1 && v <= 4) doneTotal++;
+        if(v === 1) counts[k].kaza++;
+        if(v === 2) counts[k].farz++;
+        if(v === 3) counts[k].sunnet++;
+        if(v === 4) counts[k].cemaat++;
+      }
+    }
+
+    // Nötig = Tage seit Pflicht * 6 (bis heute inkl.)
+    const start = obligationStart();
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    let daysReq = 0;
+    if(start <= today){
+      daysReq = Math.floor((today - start) / 86400000) + 1;
+    }
+    const needTotal = daysReq * PRAYERS_PER_DAY;
+    const left = Math.max(0, needTotal - doneTotal);
+    const pct = needTotal > 0 ? Math.min(100, (doneTotal / needTotal) * 100) : 0;
+
+    sinceLabel.textContent = isoToday(start);
+    needLabel.textContent  = String(needTotal);
+    doneLabel.textContent  = String(doneTotal);
+    leftLabel.textContent  = String(left);
+    barFill.style.width = `${pct.toFixed(2)}%`;
+
+    // Tracker UI
+    trackersEl.innerHTML = "";
+    for(const k of PRAYER_KEYS){
+      const row = document.createElement("div");
+      row.style.display = "grid";
+      row.style.gridTemplateColumns = "70px 1fr";
+      row.style.gap = "10px";
+      row.style.alignItems = "center";
+      row.style.padding = "8px 10px";
+      row.style.border = "1px solid var(--line)";
+      row.style.borderRadius = "12px";
+      row.style.background = "rgba(0,0,0,.10)";
+
+      const left = document.createElement("div");
+      left.innerHTML = `<b>${LABELS[k]}</b>`;
+      left.style.color = "var(--muted)";
+      left.style.fontSize = "13px";
+
+      const right = document.createElement("div");
+      right.style.display = "flex";
+      right.style.flexWrap = "wrap";
+      right.style.gap = "6px";
+
+      right.appendChild(tag("⬛", counts[k].kaza));
+      right.appendChild(tag("🔴", counts[k].farz));
+      right.appendChild(tag("🟡", counts[k].sunnet));
+      right.appendChild(tag("🟢", counts[k].cemaat));
+
+      row.appendChild(left);
+      row.appendChild(right);
+      trackersEl.appendChild(row);
+    }
+
+    function tag(emoji, n){
+      const s = document.createElement("span");
+      s.className = "pill";
+      s.textContent = `${emoji} ${n}`;
+      return s;
+    }
+  }
+
+  // Expose for Part 2
+  window.__namastakipUpdateAll = updateAll;
+  updateAll();
+
+  // ====== Backup als Datei ======
   btnSaveFile.addEventListener("click", () => {
-    // combine db + settings
-    const payload = { version: 3, savedAt: new Date().toISOString(), settings, db };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+    const payload = {
+      version: 4,
+      savedAt: new Date().toISOString(),
+      settings,
+      db: (window.__namastakipDB && window.__namastakipDB.get) ? window.__namastakipDB.get() : {}
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
     const now = new Date();
+    const pad2 = (n) => String(n).padStart(2,"0");
     const stamp = `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
     const filename = `namastakip-backup-${stamp}.json`;
 
@@ -667,78 +583,67 @@
   filePicker.addEventListener("change", async () => {
     const f = filePicker.files && filePicker.files[0];
     if(!f) return;
+
     try{
       const txt = await f.text();
       const obj = JSON.parse(txt);
 
-      // allow either {db,settings} or plain db
-      if(obj && typeof obj === "object" && obj.db && obj.settings){
-        db = obj.db || {};
-        settings = { ...settings, ...(obj.settings || {}) };
-        birthDateInput.value = settings.birthDate || "1998-01-01";
-      } else if(obj && typeof obj === "object") {
-        db = obj;
-      } else {
-        throw new Error("ungültig");
+      if(!obj || typeof obj !== "object") throw new Error("ungültig");
+      if(obj.settings) settings = { ...settings, ...obj.settings };
+      if(obj.db && window.__namastakipDB && window.__namastakipDB.set){
+        window.__namastakipDB.set(obj.db);
+      } else if(obj.db){
+        localStorage.setItem(DB_KEY, JSON.stringify(obj.db));
       }
 
-      localStorage.setItem(DB_KEY, JSON.stringify(db));
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-      renderMonth();
+      saveSettings();
+      birthDate.value = settings.birthDate || "1998-01-01";
+      updateAll();
       alert("Backup geladen ✅");
     }catch(e){
       alert("Backup konnte nicht geladen werden (ungültige Datei).");
     }
   });
 
-  // Backup: text export/import
+  // ====== Export/Import als Text ======
   btnExportText.addEventListener("click", () => {
-    const payload = { version: 3, savedAt: new Date().toISOString(), settings, db };
+    const payload = {
+      version: 4,
+      savedAt: new Date().toISOString(),
+      settings,
+      db: (window.__namastakipDB && window.__namastakipDB.get) ? window.__namastakipDB.get() : {}
+    };
     backupText.value = JSON.stringify(payload);
-    backupText.focus(); backupText.select();
+    backupText.focus();
+    backupText.select();
   });
 
   btnImportText.addEventListener("click", () => {
     const txt = (backupText.value || "").trim();
-    if(!txt) return alert("Bitte erst Import-Text einfügen.");
+    if(!txt) return alert("Bitte zuerst Import-Text einfügen.");
+
     try{
       const obj = JSON.parse(txt);
-      if(obj && typeof obj === "object" && obj.db){
-        db = obj.db || {};
-        settings = { ...settings, ...(obj.settings || {}) };
-        birthDateInput.value = settings.birthDate || "1998-01-01";
-      } else if(obj && typeof obj === "object") {
-        db = obj;
-      } else throw new Error("ungültig");
-      localStorage.setItem(DB_KEY, JSON.stringify(db));
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-      renderMonth();
+      if(!obj || typeof obj !== "object") throw new Error("ungültig");
+
+      if(obj.settings) settings = { ...settings, ...obj.settings };
+      if(obj.db && window.__namastakipDB && window.__namastakipDB.set){
+        window.__namastakipDB.set(obj.db);
+      }
+
+      saveSettings();
+      birthDate.value = settings.birthDate || "1998-01-01";
+      updateAll();
       alert("Import abgeschlossen ✅");
     }catch(e){
       alert("Import fehlgeschlagen: ungültiger Text.");
     }
   });
 
-  btnResetAll.addEventListener("click", () => {
-    const ok = confirm("Wirklich ALLE Daten auf diesem Gerät löschen?");
-    if(!ok) return;
-    db = {};
-    localStorage.setItem(DB_KEY, JSON.stringify(db));
-    renderMonth();
-  });
-
-  // ---------- Boot ----------
-  fillSelectors();
-
-  // default month: today
-  const now = new Date();
-  const y = Math.max(START_YEAR, Math.min(END_YEAR, now.getFullYear()));
-  selYear.value = String(y);
-  selMonth.value = String(now.getMonth());
-
-  renderMonth();
+  // ====== Ende HTML schließen ======
 })();
 </script>
 
+</main>
 </body>
 </html>

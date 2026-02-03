@@ -18,6 +18,7 @@
   --ok2:#1fbf83;
   --radius:14px;
   --cell:34px;
+  --off: rgba(255,255,255,.08);
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -166,6 +167,11 @@ th:first-child, td:first-child{
   border-color: rgba(255,255,255,.35);
   box-shadow: 0 8px 22px rgba(46,229,157,.20);
 }
+.cell.disabled{
+  cursor: not-allowed;
+  opacity: .45;
+  background: var(--off);
+}
 
 /* Right panel */
 h3{margin:0 0 8px 0; font-size:15px}
@@ -261,7 +267,10 @@ textarea{
   <div class="top">
     <div>
       <h1>Namastakip</h1>
-      <div class="sub">Tippen = ✅ grün an/aus (wenn gebetet → grün). Kopfzeile bleibt oben fest.</div>
+      <div class="sub">
+        Tippen = ✅ grün an/aus. Autospeichern ist aktiv. Rechts: Tracker + Backup.
+        <br><b>Neu:</b> „Fasten“ ist nur in Ramadan aktiv (offline berechnet).
+      </div>
     </div>
     <div class="controls">
       <button id="btnToday">Heute</button>
@@ -285,6 +294,7 @@ textarea{
             <th>Akşam</th>
             <th>Yatsı</th>
             <th>Vitir</th>
+            <th>Fasten</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -292,20 +302,21 @@ textarea{
     </div>
 
     <div class="sub" style="margin-top:10px">
-      Autospeichern ist aktiv. Rechts kannst du Backup speichern/laden.
+      Hinweis: Ramadan-Zeiten werden offline über den islamischen Zivilkalender berechnet (kann je nach Sichtung ±1 Tag abweichen).
     </div>
   </div>
 
   <div class="card" id="rightCard"></div>
 </main>
+
 <script>
 (() => {
-  const START_YEAR = 2002;
-  const END_YEAR = 2030;
+  const START_YEAR = 1992;   // ab 1992 zählen + auswählbar
+  const END_YEAR   = 2030;
 
   const PRAYERS = ["sabah","ogle","ikindi","aksam","yatsi","vitir"];
-  // WICHTIG: Ein fester Key, damit Tracker + Tabelle immer dieselben Daten lesen
-  const DB_KEY = "namastakip_green_single_v3";
+  const FAST_KEY = "fasten"; // Ramadan fast
+  const DB_KEY = "namastakip_green_single_v4"; // neue Version (damit nichts kaputtgeht)
 
   let db = {};
   try { db = JSON.parse(localStorage.getItem(DB_KEY) || "{}") || {}; } catch(e){ db = {}; }
@@ -322,8 +333,10 @@ textarea{
     if(!db[dateISO]){
       db[dateISO] = {};
       for(const k of PRAYERS) db[dateISO][k] = 0;
+      db[dateISO][FAST_KEY] = 0;
     }else{
       for(const k of PRAYERS) if(typeof db[dateISO][k] !== "number") db[dateISO][k] = 0;
+      if(typeof db[dateISO][FAST_KEY] !== "number") db[dateISO][FAST_KEY] = 0;
     }
     return db[dateISO];
   }
@@ -332,7 +345,6 @@ textarea{
   }
 
   function isFullDay(rec){
-    // “Tag erledigt” = alle 6 inkl. Vitir sind grün
     for(const k of PRAYERS){
       if((rec?.[k]||0) !== 1) return false;
     }
@@ -343,6 +355,136 @@ textarea{
     let done = 0;
     for(const dateISO in db){
       if(isFullDay(db[dateISO])) done++;
+    }
+    return done;
+  }
+
+  // -----------------------------
+  // Ramadan offline (Islamic civil calendar)
+  // -----------------------------
+  // Julian day helpers (civil Islamic calendar)
+  // Source idea: standard "civil Islamic" arithmetic calendar formula
+  const ISLAMIC_EPOCH = 1948439; // approx (integer JDN base)
+  function div(a,b){ return Math.floor(a/b); }
+
+  function gregorianToJDN(y,m,d){
+    // Fliegel & Van Flandern
+    const a = div(14 - m, 12);
+    const y2 = y + 4800 - a;
+    const m2 = m + 12*a - 3;
+    return d + div(153*m2 + 2, 5) + 365*y2 + div(y2,4) - div(y2,100) + div(y2,400) - 32045;
+  }
+
+  function jdnToGregorian(jdn){
+    // Fliegel & Van Flandern inverse
+    let l = jdn + 68569;
+    let n = div(4*l, 146097);
+    l = l - div(146097*n + 3, 4);
+    let i = div(4000*(l+1), 1461001);
+    l = l - div(1461*i, 4) + 31;
+    let j = div(80*l, 2447);
+    const day = l - div(2447*j, 80);
+    l = div(j, 11);
+    const month = j + 2 - 12*l;
+    const year = 100*(n - 49) + i + l;
+    return {year, month, day};
+  }
+
+  function islamicToJDN(hy, hm, hd){
+    // civil Islamic calendar
+    // month: 1..12
+    const monthDays = Math.ceil(29.5 * (hm - 1));
+    const yearDays = (hy - 1) * 354;
+    const leapDays = div(3 + 11*hy, 30);
+    return hd + monthDays + yearDays + leapDays + ISLAMIC_EPOCH - 1;
+  }
+
+  function estimateIslamicYearFromGregorian(y,m,d){
+    const jdn = gregorianToJDN(y,m,d);
+    // rough estimate
+    return Math.floor((30*(jdn - ISLAMIC_EPOCH) + 10646) / 10631);
+  }
+
+  function dateISOFromJDN(jdn){
+    const g = jdnToGregorian(jdn);
+    return iso(g.year, g.month, g.day);
+  }
+
+  function addDaysISO(dateISO, delta){
+    const [y,m,d] = dateISO.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m-1, d));
+    dt.setUTCDate(dt.getUTCDate() + delta);
+    return iso(dt.getUTCFullYear(), dt.getUTCMonth()+1, dt.getUTCDate());
+  }
+
+  function diffDaysISO(aISO, bISO){
+    // inclusive difference not; returns days between a and b (b-a)
+    const [ay,am,ad] = aISO.split("-").map(Number);
+    const [by,bm,bd] = bISO.split("-").map(Number);
+    const a = Date.UTC(ay,am-1,ad);
+    const b = Date.UTC(by,bm-1,bd);
+    return Math.round((b - a) / 86400000);
+  }
+
+  // Build Ramadan ranges across [START_YEAR..END_YEAR]
+  // We iterate Islamic years that overlap this Gregorian range.
+  const ramadanRanges = (() => {
+    const startJ = gregorianToJDN(START_YEAR,1,1);
+    const endJ   = gregorianToJDN(END_YEAR,12,31);
+
+    const hyStart = estimateIslamicYearFromGregorian(START_YEAR,1,1) - 2;
+    const hyEnd   = estimateIslamicYearFromGregorian(END_YEAR,12,31) + 2;
+
+    const ranges = [];
+    for(let hy = hyStart; hy <= hyEnd; hy++){
+      const ramStartJ = islamicToJDN(hy, 9, 1);   // 1 Ramadan
+      const shawwal1J = islamicToJDN(hy, 10, 1);  // 1 Shawwal
+      // Ramadan inclusive end = day before Shawwal 1
+      const ramEndJ = shawwal1J - 1;
+
+      if(ramEndJ < startJ || ramStartJ > endJ) continue;
+
+      const startISO = dateISOFromJDN(ramStartJ);
+      const endISO   = dateISOFromJDN(ramEndJ);
+      ranges.push({hy, startISO, endISO});
+    }
+    // sort by start
+    ranges.sort((a,b)=> a.startISO.localeCompare(b.startISO));
+    return ranges;
+  })();
+
+  function isRamadanDate(dateISO){
+    // small list; linear scan is fine
+    for(const r of ramadanRanges){
+      if(dateISO >= r.startISO && dateISO <= r.endISO) return true;
+      if(dateISO < r.startISO) return false;
+    }
+    return false;
+  }
+
+  function countRamadanRequiredUpTo(todayISO){
+    // count obligation days from START_YEAR-01-01 up to todayISO (inclusive), only inside Ramadan ranges
+    let total = 0;
+    for(const r of ramadanRanges){
+      if(r.endISO < `${START_YEAR}-01-01`) continue;
+      if(r.startISO > todayISO) break;
+
+      const a = (r.startISO < `${START_YEAR}-01-01`) ? `${START_YEAR}-01-01` : r.startISO;
+      const b = (r.endISO   > todayISO) ? todayISO : r.endISO;
+
+      if(a <= b){
+        total += diffDaysISO(a, addDaysISO(b, 1)); // (b+1) - a
+      }
+    }
+    return total;
+  }
+
+  function countRamadanDoneUpTo(todayISO){
+    let done = 0;
+    for(const dateISO in db){
+      if(dateISO > todayISO) continue;
+      if(!isRamadanDate(dateISO)) continue;
+      if((db[dateISO]?.[FAST_KEY]||0) === 1) done++;
     }
     return done;
   }
@@ -390,6 +532,7 @@ textarea{
       tdDate.textContent = fmtShort(dateObj);
       tr.appendChild(tdDate);
 
+      // prayers
       for(const k of PRAYERS){
         const td = document.createElement("td");
         const div = document.createElement("div");
@@ -404,7 +547,32 @@ textarea{
           div.className = "cell" + (day[k]===1 ? " ok" : "");
           div.textContent = day[k]===1 ? "✓" : "";
           saveDB();
-          updateRight(); // Tracker neu aus DB berechnen (kann nicht nullen)
+          updateRight();
+        });
+
+        td.appendChild(div);
+        tr.appendChild(td);
+      }
+
+      // fasting (only active in Ramadan)
+      {
+        const td = document.createElement("td");
+        const div = document.createElement("div");
+
+        const active = isRamadanDate(dateISO);
+        const v = rec[FAST_KEY] || 0;
+
+        div.className = "cell" + (v===1 ? " ok" : "") + (!active ? " disabled" : "");
+        div.textContent = v===1 ? "✓" : "";
+
+        div.addEventListener("click", ()=>{
+          if(!active) return;
+          const day = ensureDay(dateISO);
+          day[FAST_KEY] = (day[FAST_KEY]===1 ? 0 : 1);
+          div.className = "cell" + (day[FAST_KEY]===1 ? " ok" : "");
+          div.textContent = day[FAST_KEY]===1 ? "✓" : "";
+          saveDB();
+          updateRight();
         });
 
         td.appendChild(div);
@@ -451,25 +619,47 @@ textarea{
     return { ok:true, msg:`Bereich aktualisiert: ${touched} Tage.` };
   }
 
+  function setFastRangeOnlyRamadan(startISO, endISO, value){
+    const a = parseISODate(startISO);
+    const b = parseISODate(endISO);
+    if(!a || !b) return { ok:false, msg:"Bitte beide Daten korrekt auswählen." };
+    if(a > b) return { ok:false, msg:"Startdatum muss vor Enddatum liegen." };
+
+    const cur = new Date(a);
+    let touched = 0;
+
+    while(cur <= b){
+      const y = cur.getFullYear();
+      if(y >= START_YEAR && y <= END_YEAR){
+        const key = iso(cur.getFullYear(), cur.getMonth()+1, cur.getDate());
+        if(isRamadanDate(key)){
+          const rec = ensureDay(key);
+          rec[FAST_KEY] = value;
+          touched++;
+        }
+      }
+      cur.setDate(cur.getDate()+1);
+    }
+
+    saveDB();
+    renderMonth();
+    return { ok:true, msg:`Fasten aktualisiert (nur Ramadan): ${touched} Tage.` };
+  }
+
   function buildMiniMonth(year, m0){
     const dim = daysInMonth(year,m0);
     const first = new Date(year,m0,1);
 
-    // Wir starten mit Montag als erster Spalte:
-    // JS: 0=So..6=Sa -> umrechnen auf 0=Mo..6=So
     const jsDay = first.getDay(); // 0..6
     const offset = (jsDay === 0) ? 6 : (jsDay - 1);
 
     const dots = [];
-    // Wochentagsleiste
     for(const w of weekShort){
       dots.push(`<div class="miniW">${w}</div>`);
     }
-    // Leere Felder vor dem 1.
     for(let i=0; i<offset; i++){
       dots.push(`<div class="miniDot" style="visibility:hidden"></div>`);
     }
-    // Tage
     for(let d=1; d<=dim; d++){
       const key = iso(year, m0+1, d);
       const on = isFullDay(db[key]);
@@ -488,26 +678,42 @@ textarea{
   }
 
   function updateRight(){
-    // Tracker immer aus db berechnen -> bleibt nach Refresh korrekt
     const doneDays = calcFullDays();
     const months = doneDays/30;
     const years = months/12;
 
     const year = parseInt(selYear.value,10);
 
+    const today = new Date();
+    const todayISO = iso(today.getFullYear(), today.getMonth()+1, today.getDate());
+
+    const fastRequired = countRamadanRequiredUpTo(todayISO);
+    const fastDone = countRamadanDoneUpTo(todayISO);
+    const fastOpen = Math.max(0, fastRequired - fastDone);
+
     rightCard.innerHTML = `
       <h3>Tracker + Bereich + Jahresübersicht</h3>
       <div class="help">
-        <b>Tracker</b> zählt <u>vollständige Tage</u>: alle 6 Felder (inkl. Vitir) grün.
-        <br>Diese Zahlen kommen immer direkt aus deinem gespeicherten Archiv (localStorage).
+        <b>Gebet-Tracker</b> zählt <u>vollständige Tage</u>: alle 6 Felder (inkl. Vitir) grün.
+        <br><b>Fasten-Tracker</b> zählt <u>Ramadan-Pflichttage ab 1992 bis heute</u> (offline berechnet; ggf. ±1 Tag).
       </div>
 
-      <div class="kpi"><span>Vollständige Tage</span><b>${doneDays}</b></div>
+      <div class="kpi"><span>Vollständige Gebetstage</span><b>${doneDays}</b></div>
       <div class="kpi"><span>≈ Monate (÷30)</span><b>${months.toFixed(2)}</b></div>
       <div class="kpi"><span>≈ Jahre (÷12)</span><b>${years.toFixed(2)}</b></div>
 
       <div class="smallBox">
-        <div class="help"><b>Bereich abhaken</b> (setzt alle 6 Felder grün)</div>
+        <div class="help"><b>Ramadan-Fasten ab 1992 (bis heute: ${todayISO})</b></div>
+        <div class="kpi"><span>Pflicht-Tage (Ramadan)</span><b>${fastRequired}</b></div>
+        <div class="kpi"><span>Davon erledigt</span><b>${fastDone}</b></div>
+        <div class="kpi"><span>Noch offen</span><b>${fastOpen}</b></div>
+        <div class="help" style="margin-top:8px;opacity:.9">
+          Tipp: In der Tabelle ist die „Fasten“-Spalte nur während Ramadan klickbar.
+        </div>
+      </div>
+
+      <div class="smallBox">
+        <div class="help"><b>Bereich abhaken</b> (setzt alle 6 Gebete grün)</div>
         <div class="row" style="margin-top:8px">
           <div>
             <div class="help">Von</div>
@@ -526,7 +732,16 @@ textarea{
       </div>
 
       <div class="smallBox">
-        <div class="help"><b>Jahresübersicht</b> – grün = Tag komplett erledigt. Tippe auf einen Monat → springt dahin.</div>
+        <div class="help"><b>Fasten-Bereich</b> (setzt „Fasten“ nur an Ramadan-Tagen)</div>
+        <div class="row" style="margin-top:10px">
+          <button id="btnFastRangeCheck">Fasten abhaken ✅</button>
+          <button id="btnFastRangeClear" class="btnDanger">Fasten leeren</button>
+        </div>
+        <div class="help" id="fastMsg" style="margin-top:8px; opacity:.95;"></div>
+      </div>
+
+      <div class="smallBox">
+        <div class="help"><b>Jahresübersicht</b> – grün = Gebetstag komplett. Tippe auf einen Monat → springt dahin.</div>
         <div class="yearGrid">
           ${Array.from({length:12},(_,m0)=>buildMiniMonth(year,m0)).join("")}
         </div>
@@ -547,7 +762,7 @@ textarea{
       </div>
     `;
 
-    // Range hooks (Default: aktueller Monat)
+    // Range defaults (current month)
     const y = parseInt(selYear.value,10);
     const m0 = parseInt(selMonth.value,10);
     const dim = daysInMonth(y,m0);
@@ -569,7 +784,19 @@ textarea{
       msg.textContent = res.msg;
     });
 
-    // Jahresübersicht: Klick auf Monat -> springen
+    const fastMsg = document.getElementById("fastMsg");
+    document.getElementById("btnFastRangeCheck").addEventListener("click", ()=>{
+      const res = setFastRangeOnlyRamadan(from.value, to.value, 1);
+      fastMsg.textContent = res.msg;
+    });
+    document.getElementById("btnFastRangeClear").addEventListener("click", ()=>{
+      const ok = confirm("Fasten in diesem Bereich (nur Ramadan-Tage) wirklich leeren?");
+      if(!ok) return;
+      const res = setFastRangeOnlyRamadan(from.value, to.value, 0);
+      fastMsg.textContent = res.msg;
+    });
+
+    // Year view click month
     document.querySelectorAll(".mini").forEach(el=>{
       el.addEventListener("click", ()=>{
         const m = parseInt(el.getAttribute("data-m0"),10);
@@ -588,19 +815,20 @@ textarea{
     const filePicker = document.getElementById("filePicker");
 
     btnSaveFile.addEventListener("click", ()=>{
-      const payload = { version:"green-v3", savedAt: new Date().toISOString(), db };
+      const payload = { version:"green-v4", savedAt: new Date().toISOString(), db };
       const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
       const now = new Date();
       const stamp = `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
       const filename = `namastakip-backup-${stamp}.json`;
 
+      const url = URL.createObjectURL(blob);
       const a=document.createElement("a");
-      a.href=URL.createObjectURL(blob);
+      a.href=url;
       a.download=filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(()=>URL.revokeObjectURL(a.href),1200);
+      setTimeout(()=>URL.revokeObjectURL(url),1200);
     });
 
     btnLoadFile.addEventListener("click", ()=>{
@@ -625,7 +853,7 @@ textarea{
     });
 
     btnExportText.addEventListener("click", ()=>{
-      const payload = { version:"green-v3", savedAt:new Date().toISOString(), db };
+      const payload = { version:"green-v4", savedAt:new Date().toISOString(), db };
       backupText.value = JSON.stringify(payload);
       backupText.focus();
       backupText.select();
